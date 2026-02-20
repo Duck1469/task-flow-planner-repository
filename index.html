@@ -70,10 +70,7 @@
 
               <label class="mt8">Task color presets</label>
               <div id="taskColorPresets" class="preset-row"></div>
-              <div class="row gap8 mt8">
-                <button id="taskCustomColorBtn" class="btn small" type="button">Custom color</button>
-                <input id="taskCustomColorInput" class="input color hidden" type="color" value="#3b82f6" />
-              </div>
+              <input id="taskCustomColorInput" class="input color hidden" type="color" value="#3b82f6" />
 
               <div id="customDays" class="weekday-group hidden"></div>
               <button class="btn primary big" type="submit">Save task</button>
@@ -125,26 +122,22 @@
               </label>
             </div>
 
+            <div class="row between wrap mt8">
+              <label class="inline-label"><input id="fullscreenDefault" type="checkbox" /> Fullscreen by default</label>
+              <button id="enterFullscreenNow" class="btn small" type="button">Enter fullscreen now</button>
+            </div>
+
             <label class="mt8">Main color presets</label>
             <div id="mainColorPresets" class="preset-row"></div>
-            <div class="row gap8 mt8">
-              <button id="mainCustomColorBtn" class="btn small" type="button">Custom main color</button>
-              <input id="mainCustomColorInput" class="input color hidden" type="color" value="#2563eb" />
-            </div>
+            <input id="mainCustomColorInput" class="input color hidden" type="color" value="#2563eb" />
 
             <label class="mt8">Calendar low color presets</label>
             <div id="lowColorPresets" class="preset-row"></div>
-            <div class="row gap8 mt8">
-              <button id="lowCustomColorBtn" class="btn small" type="button">Custom low color</button>
-              <input id="lowCustomColorInput" class="input color hidden" type="color" value="#ef4444" />
-            </div>
+            <input id="lowCustomColorInput" class="input color hidden" type="color" value="#ef4444" />
 
             <label class="mt8">Calendar high color presets</label>
             <div id="highColorPresets" class="preset-row"></div>
-            <div class="row gap8 mt8">
-              <button id="highCustomColorBtn" class="btn small" type="button">Custom high color</button>
-              <input id="highCustomColorInput" class="input color hidden" type="color" value="#22c55e" />
-            </div>
+            <input id="highCustomColorInput" class="input color hidden" type="color" value="#22c55e" />
 
             <div class="row end mt12">
               <button id="saveSettings" class="btn primary">Save settings</button>

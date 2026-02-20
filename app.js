@@ -1,4 +1,4 @@
-const STORE_KEY = "taskflow-data-v3";
+const STORE_KEY = "taskflow-data-v4";
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const PRESETS = {
@@ -16,6 +16,7 @@ const state = {
     mainColor: "#2563eb",
     lowColor: "#ef4444",
     highColor: "#22c55e",
+    fullscreenDefault: true,
   },
   viewDate: new Date(),
   customWeekdays: [1, 3, 5],
@@ -59,7 +60,10 @@ function save() {
 }
 
 function load() {
-  const raw = localStorage.getItem(STORE_KEY) || localStorage.getItem("taskflow-data-v2") || localStorage.getItem("taskflow-data-v1");
+  const raw = localStorage.getItem(STORE_KEY)
+    || localStorage.getItem("taskflow-data-v3")
+    || localStorage.getItem("taskflow-data-v2")
+    || localStorage.getItem("taskflow-data-v1");
   if (!raw) return;
   try {
     const parsed = JSON.parse(raw);
@@ -67,7 +71,7 @@ function load() {
     state.settings = { ...state.settings, ...(parsed.settings || {}) };
     state.taskColor = state.settings.mainColor || state.taskColor;
   } catch {
-    // no-op
+    // ignore invalid saved data
   }
 }
 
@@ -110,7 +114,7 @@ function renderTabs() {
   });
 }
 
-function renderColorPresets(containerId, colors, selectedColor, onSelect) {
+function renderColorPresets(containerId, colors, selectedColor, customInputId, onSelect) {
   const container = el(containerId);
   container.innerHTML = "";
   colors.forEach((color) => {
@@ -122,6 +126,14 @@ function renderColorPresets(containerId, colors, selectedColor, onSelect) {
     btn.onclick = () => onSelect(color);
     container.appendChild(btn);
   });
+
+  const customBtn = document.createElement("button");
+  customBtn.type = "button";
+  customBtn.className = "color-preset custom-preset";
+  customBtn.title = "Custom color";
+  customBtn.textContent = "+";
+  customBtn.onclick = () => el(customInputId).classList.toggle("hidden");
+  container.appendChild(customBtn);
 }
 
 function renderWeekdayChips() {
@@ -233,51 +245,53 @@ function applySettings() {
   document.documentElement.style.setProperty("--primary", state.settings.mainColor);
 }
 
-function setupPresetHandlers() {
-  renderColorPresets("taskColorPresets", PRESETS.task, state.taskColor, (color) => {
+async function enterFullscreen() {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch {
+    // Browser may block without user gesture.
+  }
+}
+
+function setupPresetUI() {
+  renderColorPresets("taskColorPresets", PRESETS.task, state.taskColor, "taskCustomColorInput", (color) => {
     state.taskColor = color;
     el("taskCustomColorInput").value = color;
-    renderColorPresets("taskColorPresets", PRESETS.task, state.taskColor, (c) => {
-      state.taskColor = c;
-      el("taskCustomColorInput").value = c;
-      setupPresetHandlers();
-    });
+    setupPresetUI();
   });
-
-  const onMain = (color) => {
+  renderColorPresets("mainColorPresets", PRESETS.main, state.settings.mainColor, "mainCustomColorInput", (color) => {
     state.settings.mainColor = color;
     el("mainCustomColorInput").value = color;
     applySettings();
-    setupPresetHandlers();
-  };
-  const onLow = (color) => {
+    setupPresetUI();
+  });
+  renderColorPresets("lowColorPresets", PRESETS.low, state.settings.lowColor, "lowCustomColorInput", (color) => {
     state.settings.lowColor = color;
     el("lowCustomColorInput").value = color;
     renderCalendar();
-    setupPresetHandlers();
-  };
-  const onHigh = (color) => {
+    setupPresetUI();
+  });
+  renderColorPresets("highColorPresets", PRESETS.high, state.settings.highColor, "highCustomColorInput", (color) => {
     state.settings.highColor = color;
     el("highCustomColorInput").value = color;
     renderCalendar();
-    setupPresetHandlers();
-  };
-
-  renderColorPresets("mainColorPresets", PRESETS.main, state.settings.mainColor, onMain);
-  renderColorPresets("lowColorPresets", PRESETS.low, state.settings.lowColor, onLow);
-  renderColorPresets("highColorPresets", PRESETS.high, state.settings.highColor, onHigh);
+    setupPresetUI();
+  });
 }
 
 function setupHandlers() {
   el("date").value = localDateKey();
   el("theme").value = state.settings.theme;
   el("fontSize").value = String(state.settings.fontSize);
+  el("fullscreenDefault").checked = state.settings.fullscreenDefault;
   el("taskCustomColorInput").value = state.taskColor;
   el("mainCustomColorInput").value = state.settings.mainColor;
   el("lowCustomColorInput").value = state.settings.lowColor;
   el("highCustomColorInput").value = state.settings.highColor;
 
-  setupPresetHandlers();
+  setupPresetUI();
 
   el("toggleAddTaskBtn").onclick = () => {
     el("taskFormCard").classList.remove("hidden");
@@ -285,31 +299,26 @@ function setupHandlers() {
   };
   el("closeTaskFormBtn").onclick = () => el("taskFormCard").classList.add("hidden");
 
-  el("taskCustomColorBtn").onclick = () => el("taskCustomColorInput").classList.toggle("hidden");
+  el("enterFullscreenNow").onclick = enterFullscreen;
+
   el("taskCustomColorInput").oninput = (e) => {
     state.taskColor = e.target.value;
-    setupPresetHandlers();
+    setupPresetUI();
   };
-
-  el("mainCustomColorBtn").onclick = () => el("mainCustomColorInput").classList.toggle("hidden");
   el("mainCustomColorInput").oninput = (e) => {
     state.settings.mainColor = e.target.value;
     applySettings();
-    setupPresetHandlers();
+    setupPresetUI();
   };
-
-  el("lowCustomColorBtn").onclick = () => el("lowCustomColorInput").classList.toggle("hidden");
   el("lowCustomColorInput").oninput = (e) => {
     state.settings.lowColor = e.target.value;
     renderCalendar();
-    setupPresetHandlers();
+    setupPresetUI();
   };
-
-  el("highCustomColorBtn").onclick = () => el("highCustomColorInput").classList.toggle("hidden");
   el("highCustomColorInput").oninput = (e) => {
     state.settings.highColor = e.target.value;
     renderCalendar();
-    setupPresetHandlers();
+    setupPresetUI();
   };
 
   el("taskForm").onsubmit = (e) => {
@@ -358,12 +367,14 @@ function setupHandlers() {
     renderCalendar();
   };
 
-  el("saveSettings").onclick = () => {
+  el("saveSettings").onclick = async () => {
     state.settings.theme = el("theme").value;
     state.settings.fontSize = Number(el("fontSize").value);
+    state.settings.fullscreenDefault = el("fullscreenDefault").checked;
     save();
     applySettings();
     renderCalendar();
+    if (state.settings.fullscreenDefault) await enterFullscreen();
     alert("Settings saved.");
   };
 
@@ -402,10 +413,17 @@ function setupHandlers() {
     if (!confirm("Clear all tasks and settings?")) return;
     localStorage.removeItem(STORE_KEY);
     state.tasks = [];
-    state.settings = { theme: "light", fontSize: 16, mainColor: "#2563eb", lowColor: "#ef4444", highColor: "#22c55e" };
+    state.settings = {
+      theme: "light",
+      fontSize: 16,
+      mainColor: "#2563eb",
+      lowColor: "#ef4444",
+      highColor: "#22c55e",
+      fullscreenDefault: true,
+    };
     state.taskColor = "#3b82f6";
     applySettings();
-    setupPresetHandlers();
+    setupPresetUI();
     renderTasks();
     renderCalendar();
   };
@@ -418,3 +436,4 @@ setupHandlers();
 applySettings();
 renderTasks();
 renderCalendar();
+if (state.settings.fullscreenDefault) enterFullscreen();

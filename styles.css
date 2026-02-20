@@ -92,7 +92,7 @@ label { display: block; color: var(--muted); font-size: 13px; }
   background: var(--card);
   color: var(--text);
 }
-.color { max-width: 120px; padding: 4px; min-height: 40px; }
+.color { max-width: 120px; padding: 4px; min-height: 40px; margin-top:8px; }
 
 .row { display: flex; align-items: center; gap: 10px; }
 .wrap { flex-wrap: wrap; }
@@ -121,6 +121,12 @@ label { display: block; color: var(--muted); font-size: 13px; }
   width: 28px; height: 28px; border-radius: 999px; border: 2px solid var(--border); cursor: pointer;
 }
 .color-preset.active { outline: 2px solid var(--text); outline-offset: 2px; }
+
+.inline-label { display:flex; align-items:center; gap:8px; font-size:14px; }
+.custom-preset {
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; background: var(--card); color: var(--text);
+}
 
 .weekday-group { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
 .chip {
