@@ -2,7 +2,7 @@ const STORE_KEY = "taskflow-data-v4";
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const PRESETS = {
-  main: ["#2563eb", "#7c3aed", "#0ea5e9", "#14b8a6", "#f97316"],
+  main: ["#2563eb", "#1d4ed8", "#7c3aed", "#9333ea", "#0ea5e9", "#14b8a6", "#22c55e", "#eab308", "#f97316", "#ef4444", "#ec4899", "#06b6d4"],
   task: ["#3b82f6", "#a855f7", "#06b6d4", "#22c55e", "#f97316", "#ef4444"],
   low: ["#ef4444", "#f97316", "#eab308", "#f43f5e"],
   high: ["#22c55e", "#14b8a6", "#3b82f6", "#8b5cf6"],
