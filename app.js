@@ -160,12 +160,11 @@ function renderProjectSelect() {
 
 function renderCustomDaysSummary() {
   const summary = el("customDaysSummary");
+  if (!summary) return;
   if (!state.customWeekdays.length) {
-    summary.classList.remove("hidden");
     summary.textContent = "Pick at least one weekday (example: Monday + Wednesday).";
     return;
   }
-  summary.classList.remove("hidden");
   summary.textContent = `Will repeat on: ${state.customWeekdays.map((d) => days[d]).join(", ")}`;
 }
 
@@ -185,6 +184,10 @@ function renderWeekdayChips() {
     wrap.appendChild(chip);
   });
   renderCustomDaysSummary();
+  const repeatEl = el("repeat");
+  const isCustom = repeatEl && repeatEl.value === "custom";
+  wrap.classList.toggle("hidden", !isCustom);
+  el("customDaysSummary").classList.toggle("hidden", !isCustom);
 }
 
 function renderTasks() {
