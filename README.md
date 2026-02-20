@@ -60,3 +60,14 @@ Open: <http://localhost:4173>
 python3 -m http.server 4173 --bind 0.0.0.0
 ```
 Then open: `http://YOUR_LAPTOP_IP:4173`
+
+
+
+## 🌐 Publish to GitHub Pages
+
+1. Push this repo to GitHub.
+2. In GitHub repo settings, open **Pages** and set source to **GitHub Actions**.
+3. Push to branch `work` (or `main`/`master`).
+4. The workflow `.github/workflows/deploy-pages.yml` deploys the site automatically.
+
+After deploy, your app URL will be shown in the Actions run.

@@ -264,6 +264,14 @@ function renderCalendarDayPanel(dateStr) {
   });
 }
 
+function updateCalendarNow() {
+  const now = new Date();
+  const label = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+  const time = now.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const node = el("calendarNow");
+  if (node) node.textContent = `Now: ${label} · ${time}`;
+}
+
 function renderCalendar() {
   const date = state.viewDate;
   const year = date.getFullYear();
@@ -290,6 +298,7 @@ function renderCalendar() {
     const colors = unfinishedColors(key).slice(0, 8);
     const cell = document.createElement("article");
     cell.className = "day-cell";
+    if (key === localDateKey()) cell.classList.add("today");
     cell.style.background = score ? mixColor(state.settings.lowColor, state.settings.highColor, score) : "transparent";
     cell.innerHTML = `<span class="day-number">${day}</span><div class="day-colors">${colors.map((c) => `<span class='mini-dot' style='background:${c}'></span>`).join("")}</div>`;
     cell.onclick = () => renderCalendarDayPanel(key);
@@ -298,7 +307,9 @@ function renderCalendar() {
 
   const selected = state.selectedCalendarDate || localDateKey(new Date(year, month, 1));
   renderCalendarDayPanel(selected);
+  updateCalendarNow();
 }
+
 
 function applySettings() {
   document.body.classList.remove("light", "dark", "light-gray", "dark-gray");
@@ -566,3 +577,5 @@ document.addEventListener("fullscreenchange", () => {
   updateFullscreenToggleLabel();
   if (!document.fullscreenElement && state.settings.fullscreenForever) enterFullscreen();
 });
+updateCalendarNow();
+setInterval(updateCalendarNow, 60000);
