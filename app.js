@@ -424,7 +424,12 @@ function setupHandlers() {
   renderWeekdayChips();
   setupPresetUI();
 
-  el("toggleAddTaskBtn").onclick = () => { el("taskFormCard").classList.remove("hidden"); el("title").focus(); };
+  el("toggleAddTaskBtn").onclick = () => {
+    el("taskFormCard").classList.remove("hidden");
+    el("repeat").value = "custom";
+    renderWeekdayChips();
+    el("title").focus();
+  };
   el("closeTaskFormBtn").onclick = () => el("taskFormCard").classList.add("hidden");
   el("repeat").onchange = (e) => {
     const custom = e.target.value === "custom";
@@ -495,9 +500,8 @@ function setupHandlers() {
 
     e.target.reset();
     el("date").value = localDateKey();
-    el("repeat").value = "none";
-    el("customDays").classList.add("hidden");
-    el("customDaysSummary").classList.add("hidden");
+    el("repeat").value = "custom";
+    renderWeekdayChips();
     el("taskFormCard").classList.add("hidden");
 
     renderProjectSelect();
