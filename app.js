@@ -20,7 +20,7 @@ const state = {
     highColor: "#22c55e",
     fullscreenForever: false,
     sync: { token: "", gistId: "", auto: false },
-    navPosition: "down",
+    navPosition: "left",
     navSize: "big",
   },
   viewDate: new Date(),
@@ -65,7 +65,7 @@ function applyData(data) {
   if (state.settings.fullscreenDefault !== undefined && state.settings.fullscreenForever === undefined) {
     state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
   }
-  if (!state.settings.navPosition) state.settings.navPosition = "down";
+  if (!state.settings.navPosition) state.settings.navPosition = "left";
   if (!state.settings.navSize) state.settings.navSize = "big";
   state.taskColor = state.settings.mainColor || state.taskColor;
 }
@@ -306,7 +306,7 @@ function applySettings() {
   document.body.style.fontSize = `${state.settings.fontSize}px`;
   document.documentElement.style.setProperty("--primary", state.settings.mainColor);
   document.body.classList.remove("nav-down", "nav-up", "nav-left", "nav-right");
-  document.body.classList.add(`nav-${state.settings.navPosition || "down"}`);
+  document.body.classList.add(`nav-${state.settings.navPosition || "left"}`);
   document.body.classList.toggle("nav-compact", state.settings.navSize === "small");
 }
 
@@ -395,7 +395,7 @@ function setupHandlers() {
   el("date").value = localDateKey();
   el("theme").value = state.settings.theme;
   el("fontSize").value = String(state.settings.fontSize);
-  el("navPosition").value = state.settings.navPosition || "down";
+  el("navPosition").value = state.settings.navPosition || "left";
   el("fullscreenForever").checked = state.settings.fullscreenForever;
   el("taskCustomColorInput").value = state.taskColor;
   el("mainCustomColorInput").value = state.settings.mainColor;
@@ -543,7 +543,7 @@ function setupHandlers() {
       highColor: "#22c55e",
       fullscreenForever: false,
       sync: { token: "", gistId: "", auto: false },
-      navPosition: "down",
+      navPosition: "left",
       navSize: "big",
     };
     state.taskColor = "#3b82f6";
