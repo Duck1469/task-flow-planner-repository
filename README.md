@@ -1,31 +1,47 @@
 # TaskFlow Planner
 
-A clean task planner web app with **Projects**, **Today Schedule**, **Calendar**, and **Settings**.
+A clean task planner with **Projects**, **Today Schedule**, **Calendar day details**, and **Phone sync via GitHub Gist**.
 
 ## ✨ Features
 
 ### Tasks / Today
 - Add tasks with title, notes, project, date, time, repeat, and color.
-- Create and assign tasks to **Projects** (ex: School, Work, Personal).
-- Custom repeat by weekday (ex: Monday + Friday).
-- Search by task title, notes, or project.
-- Mark done / undo and delete tasks.
+- Create/select projects (School, Work, Personal, etc.).
+- Custom repeat weekdays (example: Monday + Wednesday).
+- Search by task, notes, or project.
 
 ### Calendar
-- Monthly calendar with completion shading.
-- Shows **unfinished task colors** on each day so you can spot what is pending.
-- Previous / next month navigation.
+- Completion color shading for each day.
+- Unfinished task color dots on each calendar day.
+- Click/tap any day to see:
+  - tasks done,
+  - tasks pending.
 
 ### Settings
-- Themes: Light, Dark, Light Gray, Dark Gray.
-- Text size controls (Tiny → XXL).
-- Main accent color presets + custom color.
-- Calendar low/high color presets + custom color.
-- Always-fullscreen toggle + fullscreen enter/exit button.
+- Themes: Light (white), Dark (black), Light Gray, Dark Gray.
+- Text size control.
+- Main accent + calendar color presets + custom.
+- Always fullscreen toggle + fullscreen button.
 
-### Data
-- Auto-save in browser localStorage.
-- Export/import JSON backup.
+### Phone sync (GitHub Gist)
+- Optional cross-device sync using one private Gist.
+- Works across laptop + phone with same gist/token.
+
+---
+
+## 🔄 How to enable phone sync (GitHub)
+
+1. Create a **GitHub personal access token** with `gist` permission.
+2. Create a **private gist** with one file named `taskflow-sync.json` (content can be `{}`).
+3. In app → **Settings → Phone sync (GitHub)**:
+   - paste Token,
+   - paste Gist ID,
+   - click **Test**,
+   - click **Pull now** (optional),
+   - enable **Auto sync on changes**.
+4. On phone, open same app and use same token + gist id.
+
+Now edits on one device can sync to the other with Push/Pull (or Auto sync).
 
 ---
 
@@ -37,14 +53,8 @@ python3 -m http.server 4173
 ```
 Open: <http://localhost:4173>
 
-### Phone (same Wi-Fi)
+### Phone (same Wi‑Fi)
 ```bash
 python3 -m http.server 4173 --bind 0.0.0.0
 ```
 Then open: `http://YOUR_LAPTOP_IP:4173`
-
----
-
-## 📁 Tech
-- Vanilla HTML/CSS/JavaScript (no build step).
-- Single-page tabbed UI.

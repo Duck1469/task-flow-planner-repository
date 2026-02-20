@@ -12,7 +12,7 @@
         <div>
           <p class="eyebrow">Personal Organizer</p>
           <h1>TaskFlow Planner</h1>
-          <p class="subtitle">Projects, schedule, and color calendar.</p>
+          <p class="subtitle">Projects, schedule, calendar, and sync.</p>
         </div>
       </header>
 
@@ -25,9 +25,7 @@
             </article>
             <article class="stat-card">
               <p class="muted">Actions</p>
-              <div class="row wrap gap8">
-                <button id="toggleAddTaskBtn" class="btn primary">+ Add task</button>
-              </div>
+              <button id="toggleAddTaskBtn" class="btn primary">+ Add task</button>
             </article>
           </div>
 
@@ -41,23 +39,13 @@
               <input id="notes" class="input" maxlength="200" placeholder="Notes (optional)" />
 
               <div class="grid-2">
-                <label>
-                  Project
-                  <select id="projectSelect" class="input"></select>
-                </label>
-                <label>
-                  New project (optional)
-                  <input id="projectInput" class="input" maxlength="50" placeholder="ex: School" />
-                </label>
+                <label>Project<select id="projectSelect" class="input"></select></label>
+                <label>New project (optional)<input id="projectInput" class="input" maxlength="50" placeholder="ex: School" /></label>
               </div>
 
               <div class="grid-2">
-                <label>
-                  Date
-                  <input id="date" class="input" type="date" required />
-                </label>
-                <label>
-                  Repeat
+                <label>Date<input id="date" class="input" type="date" required /></label>
+                <label>Repeat
                   <select id="repeat" class="input">
                     <option value="none">No repeat</option>
                     <option value="daily">Daily</option>
@@ -69,16 +57,11 @@
               </div>
 
               <div id="customDays" class="weekday-group hidden"></div>
+              <p id="customDaysSummary" class="muted hidden"></p>
 
               <div class="grid-2">
-                <label>
-                  Start time
-                  <input id="startTime" class="input" type="time" required />
-                </label>
-                <label>
-                  End time
-                  <input id="endTime" class="input" type="time" required />
-                </label>
+                <label>Start time<input id="startTime" class="input" type="time" required /></label>
+                <label>End time<input id="endTime" class="input" type="time" required /></label>
               </div>
 
               <label class="mt8">Task color presets</label>
@@ -108,8 +91,12 @@
                 <button id="nextMonth" class="btn">→</button>
               </div>
             </div>
-            <p class="muted mt8">Unfinished task colors appear under each day.</p>
+            <p class="muted mt8">Tap a day to see done/pending tasks. Color dots = unfinished tasks.</p>
             <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+          <div class="card">
+            <h3 id="calendarDayTitle">Selected day</h3>
+            <div id="calendarDayTasks" class="task-list"></div>
           </div>
         </section>
 
@@ -125,7 +112,6 @@
                   <option value="dark-gray">Dark gray</option>
                 </select>
               </label>
-
               <label>Text size
                 <select id="fontSize" class="input">
                   <option value="12">Tiny</option>
@@ -137,7 +123,6 @@
                 </select>
               </label>
             </div>
-
             <div class="row between wrap mt8">
               <label class="inline-label"><input id="fullscreenForever" type="checkbox" /> Always fullscreen (stay fullscreen)</label>
               <button id="fullscreenToggleBtn" class="btn small" type="button">Enter fullscreen</button>
@@ -155,9 +140,21 @@
             <div id="highColorPresets" class="preset-row"></div>
             <input id="highCustomColorInput" class="input color hidden" type="color" value="#22c55e" />
 
-            <div class="row end mt12">
-              <button id="saveSettings" class="btn primary">Save settings</button>
+            <div class="row end mt12"><button id="saveSettings" class="btn primary">Save settings</button></div>
+          </div>
+
+          <div class="card">
+            <h2>Phone sync (GitHub)</h2>
+            <p class="muted">Use one GitHub Gist to sync laptop + phone instantly.</p>
+            <label>GitHub Token (gist permission)<input id="syncToken" class="input" type="password" placeholder="ghp_..." /></label>
+            <label>Gist ID<input id="syncGistId" class="input" placeholder="paste gist id" /></label>
+            <label class="inline-label mt8"><input id="syncAuto" type="checkbox" /> Auto sync on changes</label>
+            <div class="row gap8 mt8 wrap">
+              <button id="syncPushBtn" class="btn">Push now</button>
+              <button id="syncPullBtn" class="btn">Pull now</button>
+              <button id="syncTestBtn" class="btn">Test</button>
             </div>
+            <p id="syncStatus" class="muted mt8"></p>
           </div>
 
           <div class="card">

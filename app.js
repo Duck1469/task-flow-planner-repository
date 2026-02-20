@@ -1,5 +1,6 @@
-const STORE_KEY = "taskflow-data-v5";
+const STORE_KEY = "taskflow-data-v6";
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const SYNC_FILE = "taskflow-sync.json";
 
 const PRESETS = {
   main: ["#2563eb", "#1d4ed8", "#7c3aed", "#9333ea", "#0ea5e9", "#14b8a6", "#22c55e", "#eab308", "#f97316", "#ef4444", "#ec4899", "#06b6d4"],
@@ -18,9 +19,11 @@ const state = {
     lowColor: "#ef4444",
     highColor: "#22c55e",
     fullscreenForever: false,
+    sync: { token: "", gistId: "", auto: false },
   },
   viewDate: new Date(),
-  customWeekdays: [1, 5],
+  selectedCalendarDate: null,
+  customWeekdays: [1, 3],
   taskColor: "#3b82f6",
 };
 
@@ -39,41 +42,43 @@ function formatHour(timeValue) {
 
 function hexToRgb(hex) {
   const clean = hex.replace("#", "");
-  const value = clean.length === 3 ? clean.split("").map((x) => x + x).join("") : clean;
-  const n = parseInt(value, 16);
+  const n = parseInt(clean.length === 3 ? clean.split("").map((x) => x + x).join("") : clean, 16);
   return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
 }
 
 function mixColor(low, high, ratio) {
   const a = hexToRgb(low);
   const b = hexToRgb(high);
-  const r = Math.round(a.r + (b.r - a.r) * ratio);
-  const g = Math.round(a.g + (b.g - a.g) * ratio);
-  const bl = Math.round(a.b + (b.b - a.b) * ratio);
-  return `rgb(${r}, ${g}, ${bl})`;
+  return `rgb(${Math.round(a.r + (b.r - a.r) * ratio)}, ${Math.round(a.g + (b.g - a.g) * ratio)}, ${Math.round(a.b + (b.b - a.b) * ratio)})`;
+}
+
+function packData() {
+  return { tasks: state.tasks, projects: state.projects, settings: state.settings };
+}
+
+function applyData(data) {
+  state.tasks = data.tasks || [];
+  state.projects = data.projects?.length ? data.projects : ["General"];
+  state.settings = { ...state.settings, ...(data.settings || {}) };
+  if (state.settings.fullscreenDefault !== undefined && state.settings.fullscreenForever === undefined) {
+    state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
+  }
+  state.taskColor = state.settings.mainColor || state.taskColor;
 }
 
 function save() {
-  localStorage.setItem(STORE_KEY, JSON.stringify({ tasks: state.tasks, projects: state.projects, settings: state.settings }));
+  localStorage.setItem(STORE_KEY, JSON.stringify(packData()));
 }
 
 function load() {
   const raw = localStorage.getItem(STORE_KEY)
+    || localStorage.getItem("taskflow-data-v5")
     || localStorage.getItem("taskflow-data-v4")
     || localStorage.getItem("taskflow-data-v3")
     || localStorage.getItem("taskflow-data-v2")
     || localStorage.getItem("taskflow-data-v1");
   if (!raw) return;
-  try {
-    const parsed = JSON.parse(raw);
-    state.tasks = parsed.tasks || [];
-    state.projects = parsed.projects?.length ? parsed.projects : ["General"];
-    state.settings = { ...state.settings, ...(parsed.settings || {}) };
-    if (state.settings.fullscreenDefault !== undefined && state.settings.fullscreenForever === undefined) state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
-    state.taskColor = state.settings.mainColor || state.taskColor;
-  } catch {
-    // ignore invalid saved data
-  }
+  try { applyData(JSON.parse(raw)); } catch { /* ignore */ }
 }
 
 function appliesOnDate(task, dateStr) {
@@ -102,7 +107,7 @@ function completionScore(dateStr) {
   return items.filter((t) => isCompleted(t, dateStr)).length / items.length;
 }
 
-function getUnfinishedColors(dateStr) {
+function unfinishedColors(dateStr) {
   return [...new Set(tasksForDate(dateStr).filter((t) => !isCompleted(t, dateStr)).map((t) => t.color))];
 }
 
@@ -123,30 +128,41 @@ function renderColorPresets(containerId, colors, selectedColor, customInputId, o
   const container = el(containerId);
   container.innerHTML = "";
   colors.forEach((color) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `color-preset ${selectedColor.toLowerCase() === color.toLowerCase() ? "active" : ""}`;
-    btn.style.background = color;
-    btn.onclick = () => onSelect(color);
-    container.appendChild(btn);
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `color-preset ${selectedColor.toLowerCase() === color.toLowerCase() ? "active" : ""}`;
+    b.style.background = color;
+    b.onclick = () => onSelect(color);
+    container.appendChild(b);
   });
-  const customBtn = document.createElement("button");
-  customBtn.type = "button";
-  customBtn.className = "color-preset custom-preset";
-  customBtn.textContent = "+";
-  customBtn.onclick = () => el(customInputId).classList.toggle("hidden");
-  container.appendChild(customBtn);
+  const custom = document.createElement("button");
+  custom.type = "button";
+  custom.className = "color-preset custom-preset";
+  custom.textContent = "+";
+  custom.onclick = () => el(customInputId).classList.toggle("hidden");
+  container.appendChild(custom);
 }
 
 function renderProjectSelect() {
   const select = el("projectSelect");
   select.innerHTML = "";
-  state.projects.forEach((p) => {
-    const opt = document.createElement("option");
-    opt.value = p;
-    opt.textContent = p;
-    select.appendChild(opt);
+  state.projects.forEach((project) => {
+    const o = document.createElement("option");
+    o.value = project;
+    o.textContent = project;
+    select.appendChild(o);
   });
+}
+
+function renderCustomDaysSummary() {
+  const summary = el("customDaysSummary");
+  if (!state.customWeekdays.length) {
+    summary.classList.remove("hidden");
+    summary.textContent = "Pick at least one weekday (example: Monday + Wednesday).";
+    return;
+  }
+  summary.classList.remove("hidden");
+  summary.textContent = `Will repeat on: ${state.customWeekdays.map((d) => days[d]).join(", ")}`;
 }
 
 function renderWeekdayChips() {
@@ -164,6 +180,7 @@ function renderWeekdayChips() {
     };
     wrap.appendChild(chip);
   });
+  renderCustomDaysSummary();
 }
 
 function renderTasks() {
@@ -171,12 +188,11 @@ function renderTasks() {
   const list = el("taskList");
   const date = localDateKey();
   const items = tasksForDate(date)
-    .filter((t) => !q || t.title.toLowerCase().includes(q) || (t.notes || "").toLowerCase().includes(q) || (t.project || "").toLowerCase().includes(q))
+    .filter((t) => !q || [t.title, t.notes, t.project].join(" ").toLowerCase().includes(q))
     .sort((a, b) => a.start.localeCompare(b.start));
 
   el("todaySummary").textContent = `${items.filter((t) => isCompleted(t, date)).length} / ${items.length}`;
   list.innerHTML = "";
-
   if (!items.length) {
     list.innerHTML = `<p class="muted">No tasks for today. Add one with + Add task.</p>`;
     return;
@@ -186,7 +202,6 @@ function renderTasks() {
   items.forEach((task) => {
     const node = tpl.content.cloneNode(true);
     const completed = isCompleted(task, date);
-
     node.querySelector(".dot").style.background = task.color;
     node.querySelector(".task-title").textContent = task.title;
     node.querySelector(".task-meta").textContent = task.notes || "No notes";
@@ -195,30 +210,53 @@ function renderTasks() {
       ? `Custom: ${(task.weekdays || []).map((d) => days[d]).join(", ")}`
       : (task.repeat === "none" ? "One time" : `Repeats ${task.repeat}`);
     node.querySelector(".project-badge").textContent = task.project || "General";
+    if (completed) node.querySelector(".task-item").classList.add("completed");
 
-    const item = node.querySelector(".task-item");
-    if (completed) item.classList.add("completed");
-
-    const completeBtn = node.querySelector(".completeBtn");
-    completeBtn.textContent = completed ? "Undo" : "Done";
-    completeBtn.onclick = () => {
+    const doneBtn = node.querySelector(".completeBtn");
+    doneBtn.textContent = completed ? "Undo" : "Done";
+    doneBtn.onclick = async () => {
       task.completedDates = task.completedDates || [];
-      if (completed) task.completedDates = task.completedDates.filter((d) => d !== date);
+      if (isCompleted(task, date)) task.completedDates = task.completedDates.filter((d) => d !== date);
       else task.completedDates.push(date);
       save();
       renderTasks();
       renderCalendar();
+      if (state.settings.sync.auto) await pushSync();
     };
 
-    node.querySelector(".deleteBtn").onclick = () => {
+    node.querySelector(".deleteBtn").onclick = async () => {
       if (!confirm("Delete this task?")) return;
       state.tasks = state.tasks.filter((t) => t.id !== task.id);
       save();
       renderTasks();
       renderCalendar();
+      if (state.settings.sync.auto) await pushSync();
     };
 
     list.appendChild(node);
+  });
+}
+
+function renderCalendarDayPanel(dateStr) {
+  state.selectedCalendarDate = dateStr;
+  const title = el("calendarDayTitle");
+  const panel = el("calendarDayTasks");
+  const items = tasksForDate(dateStr).sort((a, b) => a.start.localeCompare(b.start));
+  title.textContent = new Date(`${dateStr}T00:00:00`).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
+
+  panel.innerHTML = "";
+  if (!items.length) {
+    panel.innerHTML = `<p class="muted">No tasks for this day.</p>`;
+    return;
+  }
+
+  items.forEach((task) => {
+    const row = document.createElement("article");
+    row.className = "task-item";
+    row.innerHTML = `<div class="time-col"><span class="task-time">${formatHour(task.start)} - ${formatHour(task.end)}</span></div>
+      <div class="task-main"><div class="row align-start"><span class="dot" style="background:${task.color}"></span><div><h4 class="task-title">${task.title}</h4><p class="muted task-meta">${task.project || "General"} · ${isCompleted(task, dateStr) ? "Done" : "Pending"}</p></div></div></div>`;
+    if (isCompleted(task, dateStr)) row.classList.add("completed");
+    panel.appendChild(row);
   });
 }
 
@@ -230,7 +268,6 @@ function renderCalendar() {
 
   const grid = el("calendarGrid");
   grid.innerHTML = "";
-
   days.forEach((d) => {
     const h = document.createElement("div");
     h.className = "muted";
@@ -246,19 +283,17 @@ function renderCalendar() {
   for (let day = 1; day <= totalDays; day++) {
     const key = localDateKey(new Date(year, month, day));
     const score = completionScore(key);
-    const colors = getUnfinishedColors(key).slice(0, 8);
-
+    const colors = unfinishedColors(key).slice(0, 8);
     const cell = document.createElement("article");
     cell.className = "day-cell";
     cell.style.background = score ? mixColor(state.settings.lowColor, state.settings.highColor, score) : "transparent";
-
-    const colorsMarkup = colors.length
-      ? `<div class="day-colors">${colors.map((c) => `<span class="mini-dot" style="background:${c}"></span>`).join("")}</div>`
-      : `<span class="day-score muted">All done</span>`;
-
-    cell.innerHTML = `<span class="day-number">${day}</span>${colorsMarkup}`;
+    cell.innerHTML = `<span class="day-number">${day}</span><div class="day-colors">${colors.map((c) => `<span class='mini-dot' style='background:${c}'></span>`).join("")}</div>`;
+    cell.onclick = () => renderCalendarDayPanel(key);
     grid.appendChild(cell);
   }
+
+  const selected = state.selectedCalendarDate || localDateKey(new Date(year, month, 1));
+  renderCalendarDayPanel(selected);
 }
 
 function applySettings() {
@@ -275,11 +310,7 @@ function updateFullscreenToggleLabel() {
 }
 
 async function enterFullscreen() {
-  try {
-    if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
-  } catch {
-    // user gesture/browser policy
-  }
+  try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch {}
   updateFullscreenToggleLabel();
 }
 
@@ -287,35 +318,69 @@ async function toggleFullscreen() {
   try {
     if (document.fullscreenElement) await document.exitFullscreen();
     else await document.documentElement.requestFullscreen();
-  } catch {
-    // user gesture/browser policy
-  }
+  } catch {}
   updateFullscreenToggleLabel();
+}
+
+function syncStatus(msg) { el("syncStatus").textContent = msg; }
+
+async function pushSync() {
+  const { token, gistId } = state.settings.sync;
+  if (!token || !gistId) return syncStatus("Set token + gist id first.");
+  const body = { files: { [SYNC_FILE]: { content: JSON.stringify(packData(), null, 2) } } };
+  const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+    body: JSON.stringify(body),
+  });
+  syncStatus(res.ok ? "Pushed to GitHub sync." : `Push failed (${res.status}).`);
+}
+
+async function pullSync() {
+  const { token, gistId } = state.settings.sync;
+  if (!token || !gistId) return syncStatus("Set token + gist id first.");
+  const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+  });
+  if (!res.ok) return syncStatus(`Pull failed (${res.status}).`);
+  const gist = await res.json();
+  const file = gist.files?.[SYNC_FILE];
+  if (!file?.content) return syncStatus(`No ${SYNC_FILE} in gist.`);
+  try {
+    applyData(JSON.parse(file.content));
+    save();
+    applySettings();
+    renderProjectSelect();
+    setupPresetUI();
+    renderTasks();
+    renderCalendar();
+    syncStatus("Pulled from GitHub sync.");
+  } catch {
+    syncStatus("Sync file is invalid JSON.");
+  }
+}
+
+async function testSync() {
+  const { token, gistId } = state.settings.sync;
+  if (!token || !gistId) return syncStatus("Set token + gist id first.");
+  const res = await fetch(`https://api.github.com/gists/${gistId}`, {
+    headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" },
+  });
+  syncStatus(res.ok ? "Sync connected ✅" : `Sync test failed (${res.status})`);
 }
 
 function setupPresetUI() {
   renderColorPresets("taskColorPresets", PRESETS.task, state.taskColor, "taskCustomColorInput", (c) => {
-    state.taskColor = c;
-    el("taskCustomColorInput").value = c;
-    setupPresetUI();
+    state.taskColor = c; el("taskCustomColorInput").value = c; setupPresetUI();
   });
   renderColorPresets("mainColorPresets", PRESETS.main, state.settings.mainColor, "mainCustomColorInput", (c) => {
-    state.settings.mainColor = c;
-    el("mainCustomColorInput").value = c;
-    applySettings();
-    setupPresetUI();
+    state.settings.mainColor = c; el("mainCustomColorInput").value = c; applySettings(); setupPresetUI();
   });
   renderColorPresets("lowColorPresets", PRESETS.low, state.settings.lowColor, "lowCustomColorInput", (c) => {
-    state.settings.lowColor = c;
-    el("lowCustomColorInput").value = c;
-    renderCalendar();
-    setupPresetUI();
+    state.settings.lowColor = c; el("lowCustomColorInput").value = c; renderCalendar(); setupPresetUI();
   });
   renderColorPresets("highColorPresets", PRESETS.high, state.settings.highColor, "highCustomColorInput", (c) => {
-    state.settings.highColor = c;
-    el("highCustomColorInput").value = c;
-    renderCalendar();
-    setupPresetUI();
+    state.settings.highColor = c; el("highCustomColorInput").value = c; renderCalendar(); setupPresetUI();
   });
 }
 
@@ -328,21 +393,24 @@ function setupHandlers() {
   el("mainCustomColorInput").value = state.settings.mainColor;
   el("lowCustomColorInput").value = state.settings.lowColor;
   el("highCustomColorInput").value = state.settings.highColor;
+  el("syncToken").value = state.settings.sync.token || "";
+  el("syncGistId").value = state.settings.sync.gistId || "";
+  el("syncAuto").checked = !!state.settings.sync.auto;
 
   renderProjectSelect();
   renderWeekdayChips();
   setupPresetUI();
 
-  el("toggleAddTaskBtn").onclick = () => {
-    el("taskFormCard").classList.remove("hidden");
-    el("title").focus();
-  };
+  el("toggleAddTaskBtn").onclick = () => { el("taskFormCard").classList.remove("hidden"); el("title").focus(); };
   el("closeTaskFormBtn").onclick = () => el("taskFormCard").classList.add("hidden");
-
   el("repeat").onchange = (e) => {
-    el("customDays").classList.toggle("hidden", e.target.value !== "custom");
+    const custom = e.target.value === "custom";
+    el("customDays").classList.toggle("hidden", !custom);
+    el("customDaysSummary").classList.toggle("hidden", !custom);
+    if (custom) renderCustomDaysSummary();
   };
 
+  el("taskSearch").oninput = renderTasks;
   el("fullscreenToggleBtn").onclick = toggleFullscreen;
   updateFullscreenToggleLabel();
 
@@ -351,9 +419,11 @@ function setupHandlers() {
   el("lowCustomColorInput").oninput = (e) => { state.settings.lowColor = e.target.value; renderCalendar(); setupPresetUI(); };
   el("highCustomColorInput").oninput = (e) => { state.settings.highColor = e.target.value; renderCalendar(); setupPresetUI(); };
 
-  el("taskSearch").oninput = renderTasks;
+  el("syncPushBtn").onclick = pushSync;
+  el("syncPullBtn").onclick = pullSync;
+  el("syncTestBtn").onclick = testSync;
 
-  el("taskForm").onsubmit = (e) => {
+  el("taskForm").onsubmit = async (e) => {
     e.preventDefault();
     const start = el("startTime").value;
     const end = el("endTime").value;
@@ -364,6 +434,8 @@ function setupHandlers() {
     const chosenProject = newProject || el("projectSelect").value || "General";
 
     const repeat = el("repeat").value;
+    if (repeat === "custom" && !state.customWeekdays.length) return alert("Pick at least one custom weekday.");
+
     const task = {
       id: crypto.randomUUID(),
       title: el("title").value.trim(),
@@ -381,11 +453,13 @@ function setupHandlers() {
     if (!task.title) return;
     state.tasks.push(task);
     save();
+    if (state.settings.sync.auto) await pushSync();
 
     e.target.reset();
     el("date").value = localDateKey();
     el("repeat").value = "none";
     el("customDays").classList.add("hidden");
+    el("customDaysSummary").classList.add("hidden");
     el("taskFormCard").classList.add("hidden");
 
     renderProjectSelect();
@@ -393,28 +467,26 @@ function setupHandlers() {
     renderCalendar();
   };
 
-  el("prevMonth").onclick = () => {
-    state.viewDate = new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() - 1, 1);
-    renderCalendar();
-  };
-  el("nextMonth").onclick = () => {
-    state.viewDate = new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() + 1, 1);
-    renderCalendar();
-  };
+  el("prevMonth").onclick = () => { state.viewDate = new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() - 1, 1); renderCalendar(); };
+  el("nextMonth").onclick = () => { state.viewDate = new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() + 1, 1); renderCalendar(); };
 
   el("saveSettings").onclick = async () => {
     state.settings.theme = el("theme").value;
     state.settings.fontSize = Number(el("fontSize").value);
     state.settings.fullscreenForever = el("fullscreenForever").checked;
+    state.settings.sync.token = el("syncToken").value.trim();
+    state.settings.sync.gistId = el("syncGistId").value.trim();
+    state.settings.sync.auto = el("syncAuto").checked;
     save();
     applySettings();
     renderCalendar();
     if (state.settings.fullscreenForever) await enterFullscreen();
+    if (state.settings.sync.auto) await pushSync();
     alert("Settings saved.");
   };
 
   el("exportBtn").onclick = () => {
-    const blob = new Blob([JSON.stringify({ tasks: state.tasks, projects: state.projects, settings: state.settings }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(packData(), null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "taskflow-backup.json";
@@ -427,21 +499,15 @@ function setupHandlers() {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const parsed = JSON.parse(reader.result);
-        state.tasks = parsed.tasks || [];
-        state.projects = parsed.projects?.length ? parsed.projects : ["General"];
-        state.settings = { ...state.settings, ...(parsed.settings || {}) };
-    if (state.settings.fullscreenDefault !== undefined && state.settings.fullscreenForever === undefined) state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
-        state.taskColor = state.settings.mainColor;
+        applyData(JSON.parse(reader.result));
         save();
         applySettings();
-        renderProjectSelect();
-        setupPresetUI();
+        setupHandlers();
         renderTasks();
         renderCalendar();
-        alert("Imported successfully.");
+        syncStatus("Imported successfully.");
       } catch {
-        alert("Invalid backup file.");
+        syncStatus("Invalid backup file.");
       }
     };
     reader.readAsText(file);
@@ -459,13 +525,14 @@ function setupHandlers() {
       lowColor: "#ef4444",
       highColor: "#22c55e",
       fullscreenForever: false,
+      sync: { token: "", gistId: "", auto: false },
     };
     state.taskColor = "#3b82f6";
     applySettings();
-    renderProjectSelect();
-    setupPresetUI();
+    setupHandlers();
     renderTasks();
     renderCalendar();
+    syncStatus("Cleared.");
   };
 }
 
