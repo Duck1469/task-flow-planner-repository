@@ -28,6 +28,8 @@ const state = {
   customWeekdays: [1, 3],
   taskColor: "#3b82f6",
   editingTaskId: null,
+  taskFilter: "all",
+  taskSort: "time",
 };
 
 const el = (id) => document.getElementById(id);
@@ -252,9 +254,23 @@ function renderTasks() {
   const q = el("taskSearch").value.toLowerCase().trim();
   const list = el("taskList");
   const date = localDateKey();
+  const filter = el("taskFilter")?.value || state.taskFilter;
+  const sortBy = el("taskSort")?.value || state.taskSort;
+  state.taskFilter = filter;
+  state.taskSort = sortBy;
+
   const items = tasksForDate(date)
     .filter((t) => !q || [t.title, t.notes, t.project].join(" ").toLowerCase().includes(q))
-    .sort((a, b) => a.start.localeCompare(b.start));
+    .filter((t) => {
+      if (filter === "done") return isCompleted(t, date);
+      if (filter === "pending") return !isCompleted(t, date);
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === "title") return a.title.localeCompare(b.title);
+      if (sortBy === "project") return (a.project || "").localeCompare(b.project || "");
+      return a.start.localeCompare(b.start);
+    });
 
   el("todaySummary").textContent = `${items.filter((t) => isCompleted(t, date)).length} / ${items.length}`;
   list.innerHTML = "";
@@ -296,6 +312,20 @@ function renderTasks() {
       state.taskColor = task.color || state.taskColor;
       setupPresetUI();
       el("title").focus();
+    };
+
+    node.querySelector(".duplicateBtn").onclick = async () => {
+      const dup = {
+        ...task,
+        id: crypto.randomUUID(),
+        title: `${task.title} (copy)`,
+        completedDates: [],
+      };
+      state.tasks.push(dup);
+      save();
+      renderTasks();
+      renderCalendar();
+      if (state.settings.sync.auto) await pushSync();
     };
 
     const doneBtn = node.querySelector(".completeBtn");
@@ -497,6 +527,8 @@ function setupHandlers() {
   el("syncToken").value = state.settings.sync.token || "";
   el("syncGistId").value = state.settings.sync.gistId || "";
   el("syncAuto").checked = !!state.settings.sync.auto;
+  el("taskFilter").value = state.taskFilter;
+  el("taskSort").value = state.taskSort;
   el("toggleNavSizeBtn").textContent = state.settings.navSize === "small" ? "Make buttons bigger" : "Make buttons smaller";
 
   renderProjectSelect();
@@ -533,6 +565,38 @@ function setupHandlers() {
   };
 
   el("taskSearch").oninput = renderTasks;
+  el("taskFilter").onchange = renderTasks;
+  el("taskSort").onchange = renderTasks;
+  el("markAllDoneBtn").onclick = async () => {
+    const today = localDateKey();
+    let changed = false;
+    tasksForDate(today).forEach((task) => {
+      task.completedDates = task.completedDates || [];
+      if (!task.completedDates.includes(today)) {
+        task.completedDates.push(today);
+        changed = true;
+      }
+    });
+    if (!changed) return alert("All visible tasks are already marked done.");
+    save();
+    renderTasks();
+    renderCalendar();
+    if (state.settings.sync.auto) await pushSync();
+  };
+  el("clearDoneTodayBtn").onclick = async () => {
+    const today = localDateKey();
+    let changed = false;
+    state.tasks.forEach((task) => {
+      const before = task.completedDates?.length || 0;
+      task.completedDates = (task.completedDates || []).filter((d) => d !== today);
+      if ((task.completedDates?.length || 0) !== before) changed = true;
+    });
+    if (!changed) return alert("No completed tasks to clear for today.");
+    save();
+    renderTasks();
+    renderCalendar();
+    if (state.settings.sync.auto) await pushSync();
+  };
   el("fullscreenToggleBtn").onclick = toggleFullscreen;
   updateFullscreenToggleLabel();
 

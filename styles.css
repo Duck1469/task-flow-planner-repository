@@ -68,6 +68,7 @@ select.input, select.input option { background: var(--card); color: var(--text);
 .chip.active { background: var(--primary); color:#fff; border-color:transparent; }
 
 .schedule-search { max-width:280px; margin-top:0; }
+.compact-input { max-width: 170px; margin-top:0; }
 .task-list { display:flex; flex-direction:column; gap:10px; }
 .task-item { border:1px solid var(--border); border-radius:13px; padding:12px; display:grid; grid-template-columns:95px 1fr; gap:12px; background:var(--card); }
 .time-col { border-right:1px dashed var(--border); padding-right:8px; }

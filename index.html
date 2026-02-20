@@ -78,6 +78,20 @@
               <h2>Schedule</h2>
               <input id="taskSearch" class="input schedule-search" placeholder="Search tasks or project..." />
             </div>
+            <div class="row wrap gap8 mt8">
+              <select id="taskFilter" class="input compact-input">
+                <option value="all">Show: All</option>
+                <option value="pending">Show: Pending</option>
+                <option value="done">Show: Done</option>
+              </select>
+              <select id="taskSort" class="input compact-input">
+                <option value="time">Sort: Time</option>
+                <option value="title">Sort: Title</option>
+                <option value="project">Sort: Project</option>
+              </select>
+              <button id="markAllDoneBtn" class="btn small" type="button">Mark all done today</button>
+              <button id="clearDoneTodayBtn" class="btn small" type="button">Clear done today</button>
+            </div>
             <div id="taskList" class="task-list"></div>
           </div>
         </section>
@@ -222,6 +236,7 @@
             <span class="project-badge"></span>
             <div class="row gap8">
               <button class="btn small editBtn">Edit</button>
+              <button class="btn small duplicateBtn">Duplicate</button>
               <button class="btn small deleteBtn">Delete</button>
             </div>
           </div>
