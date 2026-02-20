@@ -1,4 +1,4 @@
-const STORE_KEY = "taskflow-data-v4";
+const STORE_KEY = "taskflow-data-v5";
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const PRESETS = {
@@ -10,26 +10,24 @@ const PRESETS = {
 
 const state = {
   tasks: [],
+  projects: ["General"],
   settings: {
     theme: "light",
     fontSize: 16,
     mainColor: "#2563eb",
     lowColor: "#ef4444",
     highColor: "#22c55e",
-    fullscreenDefault: true,
+    fullscreenDefault: false,
   },
   viewDate: new Date(),
-  customWeekdays: [1, 3, 5],
+  customWeekdays: [1, 5],
   taskColor: "#3b82f6",
 };
 
 const el = (id) => document.getElementById(id);
 
 function localDateKey(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
 function formatHour(timeValue) {
@@ -56,11 +54,12 @@ function mixColor(low, high, ratio) {
 }
 
 function save() {
-  localStorage.setItem(STORE_KEY, JSON.stringify({ tasks: state.tasks, settings: state.settings }));
+  localStorage.setItem(STORE_KEY, JSON.stringify({ tasks: state.tasks, projects: state.projects, settings: state.settings }));
 }
 
 function load() {
   const raw = localStorage.getItem(STORE_KEY)
+    || localStorage.getItem("taskflow-data-v4")
     || localStorage.getItem("taskflow-data-v3")
     || localStorage.getItem("taskflow-data-v2")
     || localStorage.getItem("taskflow-data-v1");
@@ -68,6 +67,7 @@ function load() {
   try {
     const parsed = JSON.parse(raw);
     state.tasks = parsed.tasks || [];
+    state.projects = parsed.projects?.length ? parsed.projects : ["General"];
     state.settings = { ...state.settings, ...(parsed.settings || {}) };
     state.taskColor = state.settings.mainColor || state.taskColor;
   } catch {
@@ -98,8 +98,11 @@ function tasksForDate(dateStr) {
 function completionScore(dateStr) {
   const items = tasksForDate(dateStr);
   if (!items.length) return 0;
-  const done = items.filter((t) => isCompleted(t, dateStr)).length;
-  return done / items.length;
+  return items.filter((t) => isCompleted(t, dateStr)).length / items.length;
+}
+
+function getUnfinishedColors(dateStr) {
+  return [...new Set(tasksForDate(dateStr).filter((t) => !isCompleted(t, dateStr)).map((t) => t.color))];
 }
 
 function renderTabs() {
@@ -123,18 +126,26 @@ function renderColorPresets(containerId, colors, selectedColor, customInputId, o
     btn.type = "button";
     btn.className = `color-preset ${selectedColor.toLowerCase() === color.toLowerCase() ? "active" : ""}`;
     btn.style.background = color;
-    btn.title = color;
     btn.onclick = () => onSelect(color);
     container.appendChild(btn);
   });
-
   const customBtn = document.createElement("button");
   customBtn.type = "button";
   customBtn.className = "color-preset custom-preset";
-  customBtn.title = "Custom color";
   customBtn.textContent = "+";
   customBtn.onclick = () => el(customInputId).classList.toggle("hidden");
   container.appendChild(customBtn);
+}
+
+function renderProjectSelect() {
+  const select = el("projectSelect");
+  select.innerHTML = "";
+  state.projects.forEach((p) => {
+    const opt = document.createElement("option");
+    opt.value = p;
+    opt.textContent = p;
+    select.appendChild(opt);
+  });
 }
 
 function renderWeekdayChips() {
@@ -155,18 +166,18 @@ function renderWeekdayChips() {
 }
 
 function renderTasks() {
-  const list = el("taskList");
   const q = el("taskSearch").value.toLowerCase().trim();
+  const list = el("taskList");
   const date = localDateKey();
   const items = tasksForDate(date)
-    .filter((t) => !q || t.title.toLowerCase().includes(q) || (t.notes || "").toLowerCase().includes(q))
+    .filter((t) => !q || t.title.toLowerCase().includes(q) || (t.notes || "").toLowerCase().includes(q) || (t.project || "").toLowerCase().includes(q))
     .sort((a, b) => a.start.localeCompare(b.start));
 
   el("todaySummary").textContent = `${items.filter((t) => isCompleted(t, date)).length} / ${items.length}`;
-
   list.innerHTML = "";
+
   if (!items.length) {
-    list.innerHTML = `<p class="muted">No tasks yet for today. Tap + Add task to create one.</p>`;
+    list.innerHTML = `<p class="muted">No tasks for today. Add one with + Add task.</p>`;
     return;
   }
 
@@ -179,7 +190,10 @@ function renderTasks() {
     node.querySelector(".task-title").textContent = task.title;
     node.querySelector(".task-meta").textContent = task.notes || "No notes";
     node.querySelector(".task-time").textContent = `${formatHour(task.start)} - ${formatHour(task.end)}`;
-    node.querySelector(".task-repeat").textContent = task.repeat === "none" ? "One time" : `Repeats ${task.repeat}`;
+    node.querySelector(".task-repeat").textContent = task.repeat === "custom"
+      ? `Custom: ${(task.weekdays || []).map((d) => days[d]).join(", ")}`
+      : (task.repeat === "none" ? "One time" : `Repeats ${task.repeat}`);
+    node.querySelector(".project-badge").textContent = task.project || "General";
 
     const item = node.querySelector(".task-item");
     if (completed) item.classList.add("completed");
@@ -188,7 +202,7 @@ function renderTasks() {
     completeBtn.textContent = completed ? "Undo" : "Done";
     completeBtn.onclick = () => {
       task.completedDates = task.completedDates || [];
-      if (isCompleted(task, date)) task.completedDates = task.completedDates.filter((d) => d !== date);
+      if (completed) task.completedDates = task.completedDates.filter((d) => d !== date);
       else task.completedDates.push(date);
       save();
       renderTasks();
@@ -231,10 +245,17 @@ function renderCalendar() {
   for (let day = 1; day <= totalDays; day++) {
     const key = localDateKey(new Date(year, month, day));
     const score = completionScore(key);
+    const colors = getUnfinishedColors(key).slice(0, 8);
+
     const cell = document.createElement("article");
     cell.className = "day-cell";
     cell.style.background = score ? mixColor(state.settings.lowColor, state.settings.highColor, score) : "transparent";
-    cell.innerHTML = `<span class="day-number">${day}</span><span class="day-score muted">${Math.round(score * 100)}%</span>`;
+
+    const colorsMarkup = colors.length
+      ? `<div class="day-colors">${colors.map((c) => `<span class="mini-dot" style="background:${c}"></span>`).join("")}</div>`
+      : `<span class="day-score muted">All done</span>`;
+
+    cell.innerHTML = `<span class="day-number">${day}</span>${colorsMarkup}`;
     grid.appendChild(cell);
   }
 }
@@ -254,11 +275,9 @@ function updateFullscreenToggleLabel() {
 
 async function enterFullscreen() {
   try {
-    if (!document.fullscreenElement) {
-      await document.documentElement.requestFullscreen();
-    }
+    if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
   } catch {
-    // Browser may block without user gesture.
+    // user gesture/browser policy
   }
   updateFullscreenToggleLabel();
 }
@@ -268,32 +287,32 @@ async function toggleFullscreen() {
     if (document.fullscreenElement) await document.exitFullscreen();
     else await document.documentElement.requestFullscreen();
   } catch {
-    // Browser may block without user gesture.
+    // user gesture/browser policy
   }
   updateFullscreenToggleLabel();
 }
 
 function setupPresetUI() {
-  renderColorPresets("taskColorPresets", PRESETS.task, state.taskColor, "taskCustomColorInput", (color) => {
-    state.taskColor = color;
-    el("taskCustomColorInput").value = color;
+  renderColorPresets("taskColorPresets", PRESETS.task, state.taskColor, "taskCustomColorInput", (c) => {
+    state.taskColor = c;
+    el("taskCustomColorInput").value = c;
     setupPresetUI();
   });
-  renderColorPresets("mainColorPresets", PRESETS.main, state.settings.mainColor, "mainCustomColorInput", (color) => {
-    state.settings.mainColor = color;
-    el("mainCustomColorInput").value = color;
+  renderColorPresets("mainColorPresets", PRESETS.main, state.settings.mainColor, "mainCustomColorInput", (c) => {
+    state.settings.mainColor = c;
+    el("mainCustomColorInput").value = c;
     applySettings();
     setupPresetUI();
   });
-  renderColorPresets("lowColorPresets", PRESETS.low, state.settings.lowColor, "lowCustomColorInput", (color) => {
-    state.settings.lowColor = color;
-    el("lowCustomColorInput").value = color;
+  renderColorPresets("lowColorPresets", PRESETS.low, state.settings.lowColor, "lowCustomColorInput", (c) => {
+    state.settings.lowColor = c;
+    el("lowCustomColorInput").value = c;
     renderCalendar();
     setupPresetUI();
   });
-  renderColorPresets("highColorPresets", PRESETS.high, state.settings.highColor, "highCustomColorInput", (color) => {
-    state.settings.highColor = color;
-    el("highCustomColorInput").value = color;
+  renderColorPresets("highColorPresets", PRESETS.high, state.settings.highColor, "highCustomColorInput", (c) => {
+    state.settings.highColor = c;
+    el("highCustomColorInput").value = c;
     renderCalendar();
     setupPresetUI();
   });
@@ -309,6 +328,8 @@ function setupHandlers() {
   el("lowCustomColorInput").value = state.settings.lowColor;
   el("highCustomColorInput").value = state.settings.highColor;
 
+  renderProjectSelect();
+  renderWeekdayChips();
   setupPresetUI();
 
   el("toggleAddTaskBtn").onclick = () => {
@@ -317,28 +338,19 @@ function setupHandlers() {
   };
   el("closeTaskFormBtn").onclick = () => el("taskFormCard").classList.add("hidden");
 
+  el("repeat").onchange = (e) => {
+    el("customDays").classList.toggle("hidden", e.target.value !== "custom");
+  };
+
   el("fullscreenToggleBtn").onclick = toggleFullscreen;
   updateFullscreenToggleLabel();
 
-  el("taskCustomColorInput").oninput = (e) => {
-    state.taskColor = e.target.value;
-    setupPresetUI();
-  };
-  el("mainCustomColorInput").oninput = (e) => {
-    state.settings.mainColor = e.target.value;
-    applySettings();
-    setupPresetUI();
-  };
-  el("lowCustomColorInput").oninput = (e) => {
-    state.settings.lowColor = e.target.value;
-    renderCalendar();
-    setupPresetUI();
-  };
-  el("highCustomColorInput").oninput = (e) => {
-    state.settings.highColor = e.target.value;
-    renderCalendar();
-    setupPresetUI();
-  };
+  el("taskCustomColorInput").oninput = (e) => { state.taskColor = e.target.value; setupPresetUI(); };
+  el("mainCustomColorInput").oninput = (e) => { state.settings.mainColor = e.target.value; applySettings(); setupPresetUI(); };
+  el("lowCustomColorInput").oninput = (e) => { state.settings.lowColor = e.target.value; renderCalendar(); setupPresetUI(); };
+  el("highCustomColorInput").oninput = (e) => { state.settings.highColor = e.target.value; renderCalendar(); setupPresetUI(); };
+
+  el("taskSearch").oninput = renderTasks;
 
   el("taskForm").onsubmit = (e) => {
     e.preventDefault();
@@ -346,11 +358,16 @@ function setupHandlers() {
     const end = el("endTime").value;
     if (!start || !end || end <= start) return alert("End time must be after start time.");
 
+    const newProject = el("projectInput").value.trim();
+    if (newProject && !state.projects.includes(newProject)) state.projects.push(newProject);
+    const chosenProject = newProject || el("projectSelect").value || "General";
+
     const repeat = el("repeat").value;
     const task = {
       id: crypto.randomUUID(),
       title: el("title").value.trim(),
       notes: el("notes").value.trim(),
+      project: chosenProject,
       date: el("date").value,
       start,
       end,
@@ -370,12 +387,10 @@ function setupHandlers() {
     el("customDays").classList.add("hidden");
     el("taskFormCard").classList.add("hidden");
 
+    renderProjectSelect();
     renderTasks();
     renderCalendar();
   };
-
-  el("repeat").onchange = (e) => el("customDays").classList.toggle("hidden", e.target.value !== "custom");
-  el("taskSearch").oninput = renderTasks;
 
   el("prevMonth").onclick = () => {
     state.viewDate = new Date(state.viewDate.getFullYear(), state.viewDate.getMonth() - 1, 1);
@@ -398,7 +413,7 @@ function setupHandlers() {
   };
 
   el("exportBtn").onclick = () => {
-    const blob = new Blob([JSON.stringify({ tasks: state.tasks, settings: state.settings }, null, 2)], { type: "application/json" });
+    const blob = new Blob([JSON.stringify({ tasks: state.tasks, projects: state.projects, settings: state.settings }, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "taskflow-backup.json";
@@ -413,11 +428,13 @@ function setupHandlers() {
       try {
         const parsed = JSON.parse(reader.result);
         state.tasks = parsed.tasks || [];
+        state.projects = parsed.projects?.length ? parsed.projects : ["General"];
         state.settings = { ...state.settings, ...(parsed.settings || {}) };
         state.taskColor = state.settings.mainColor;
         save();
         applySettings();
-        setupHandlers();
+        renderProjectSelect();
+        setupPresetUI();
         renderTasks();
         renderCalendar();
         alert("Imported successfully.");
@@ -432,16 +449,18 @@ function setupHandlers() {
     if (!confirm("Clear all tasks and settings?")) return;
     localStorage.removeItem(STORE_KEY);
     state.tasks = [];
+    state.projects = ["General"];
     state.settings = {
       theme: "light",
       fontSize: 16,
       mainColor: "#2563eb",
       lowColor: "#ef4444",
       highColor: "#22c55e",
-      fullscreenDefault: true,
+      fullscreenDefault: false,
     };
     state.taskColor = "#3b82f6";
     applySettings();
+    renderProjectSelect();
     setupPresetUI();
     renderTasks();
     renderCalendar();
@@ -449,10 +468,9 @@ function setupHandlers() {
 }
 
 load();
-renderTabs();
-renderWeekdayChips();
-setupHandlers();
 applySettings();
+renderTabs();
+setupHandlers();
 renderTasks();
 renderCalendar();
 if (state.settings.fullscreenDefault) enterFullscreen();

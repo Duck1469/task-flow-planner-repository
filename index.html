@@ -12,7 +12,7 @@
         <div>
           <p class="eyebrow">Personal Organizer</p>
           <h1>TaskFlow Planner</h1>
-          <p class="subtitle">Structured daily planner for phone and desktop.</p>
+          <p class="subtitle">Projects, schedule, and color calendar.</p>
         </div>
       </header>
 
@@ -42,6 +42,17 @@
 
               <div class="grid-2">
                 <label>
+                  Project
+                  <select id="projectSelect" class="input"></select>
+                </label>
+                <label>
+                  New project (optional)
+                  <input id="projectInput" class="input" maxlength="50" placeholder="ex: School" />
+                </label>
+              </div>
+
+              <div class="grid-2">
+                <label>
                   Date
                   <input id="date" class="input" type="date" required />
                 </label>
@@ -56,6 +67,8 @@
                   </select>
                 </label>
               </div>
+
+              <div id="customDays" class="weekday-group hidden"></div>
 
               <div class="grid-2">
                 <label>
@@ -72,7 +85,6 @@
               <div id="taskColorPresets" class="preset-row"></div>
               <input id="taskCustomColorInput" class="input color hidden" type="color" value="#3b82f6" />
 
-              <div id="customDays" class="weekday-group hidden"></div>
               <button class="btn primary big" type="submit">Save task</button>
             </form>
           </div>
@@ -80,7 +92,7 @@
           <div class="card">
             <div class="row between align-start">
               <h2>Schedule</h2>
-              <input id="taskSearch" class="input schedule-search" placeholder="Search tasks..." />
+              <input id="taskSearch" class="input schedule-search" placeholder="Search tasks or project..." />
             </div>
             <div id="taskList" class="task-list"></div>
           </div>
@@ -89,13 +101,14 @@
         <section id="calendar" class="tab-panel">
           <div class="card">
             <div class="row between">
-              <h2>Completion calendar</h2>
+              <h2>Task calendar</h2>
               <div class="row gap8">
                 <button id="prevMonth" class="btn">←</button>
                 <p id="monthLabel" class="month-label"></p>
                 <button id="nextMonth" class="btn">→</button>
               </div>
             </div>
+            <p class="muted mt8">Unfinished task colors appear under each day.</p>
             <div id="calendarGrid" class="calendar-grid"></div>
           </div>
         </section>
@@ -183,7 +196,8 @@
             </div>
             <button class="btn small completeBtn">Done</button>
           </div>
-          <div class="row end mt12">
+          <div class="row between mt12 wrap">
+            <span class="project-badge"></span>
             <button class="btn small deleteBtn">Delete</button>
           </div>
         </div>
