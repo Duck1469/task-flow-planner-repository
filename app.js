@@ -212,7 +212,7 @@ function renderTasks() {
     node.querySelector(".dot").style.background = task.color;
     node.querySelector(".task-title").textContent = task.title;
     node.querySelector(".task-meta").textContent = task.notes || "No notes";
-    node.querySelector(".task-time").textContent = `${formatHour(task.start)} - ${formatHour(task.end)}`;
+    node.querySelector(".task-time").textContent = task.allDay ? "All day" : `${formatHour(task.start)} - ${formatHour(task.end)}`;
     node.querySelector(".task-repeat").textContent = task.repeat === "custom"
       ? `Custom: ${(task.weekdays || []).map((d) => days[d]).join(", ")}`
       : (task.repeat === "none" ? "One time" : `Repeats ${task.repeat}`);
@@ -438,6 +438,19 @@ function setupHandlers() {
     if (custom) renderCustomDaysSummary();
   };
 
+  el("allDay").onchange = (e) => {
+    const allDay = e.target.checked;
+    el("startTime").disabled = allDay;
+    el("endTime").disabled = allDay;
+    if (allDay) {
+      el("startTime").value = "00:00";
+      el("endTime").value = "23:59";
+    } else {
+      el("startTime").value = "";
+      el("endTime").value = "";
+    }
+  };
+
   el("taskSearch").oninput = renderTasks;
   el("fullscreenToggleBtn").onclick = toggleFullscreen;
   updateFullscreenToggleLabel();
@@ -468,8 +481,9 @@ function setupHandlers() {
 
   el("taskForm").onsubmit = async (e) => {
     e.preventDefault();
-    const start = el("startTime").value;
-    const end = el("endTime").value;
+    const allDay = el("allDay").checked;
+    const start = allDay ? "00:00" : el("startTime").value;
+    const end = allDay ? "23:59" : el("endTime").value;
     if (!start || !end || end <= start) return alert("End time must be after start time.");
 
     const newProject = el("projectInput").value.trim();
@@ -489,6 +503,7 @@ function setupHandlers() {
       end,
       repeat,
       weekdays: repeat === "custom" ? [...state.customWeekdays] : [],
+      allDay,
       color: state.taskColor,
       completedDates: [],
     };
@@ -501,6 +516,9 @@ function setupHandlers() {
     e.target.reset();
     el("date").value = localDateKey();
     el("repeat").value = "custom";
+    el("allDay").checked = false;
+    el("startTime").disabled = false;
+    el("endTime").disabled = false;
     renderWeekdayChips();
     el("taskFormCard").classList.add("hidden");
 
