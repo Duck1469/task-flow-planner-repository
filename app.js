@@ -434,6 +434,14 @@ function setupHandlers() {
   el("fullscreenToggleBtn").onclick = toggleFullscreen;
   updateFullscreenToggleLabel();
 
+  el("enableAutoFullscreenBtn").onclick = async () => {
+    state.settings.fullscreenForever = true;
+    el("fullscreenForever").checked = true;
+    save();
+    await enterFullscreen();
+    alert("Auto fullscreen enabled. It will try fullscreen each time you open the website.");
+  };
+
   el("toggleNavSizeBtn").onclick = () => {
     state.settings.navSize = state.settings.navSize === "small" ? "big" : "small";
     el("toggleNavSizeBtn").textContent = state.settings.navSize === "small" ? "Make buttons bigger" : "Make buttons smaller";

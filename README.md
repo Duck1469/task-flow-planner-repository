@@ -23,7 +23,7 @@ A clean task planner with **Projects**, **Today Schedule**, **Calendar day detai
 - Navigation position for Today/Calendar/Settings tabs: top, bottom, left, or right (**default: left**).
 - Navigation buttons are bigger by default, with a settings button to make them smaller.
 - Main accent + calendar color presets + custom.
-- Always fullscreen toggle + fullscreen button.
+- Always fullscreen toggle + fullscreen button + quick button to enable auto-fullscreen on startup.
 
 ### Phone sync (GitHub Gist)
 - Optional cross-device sync using one private Gist.
