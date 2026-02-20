@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow Planner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar card-soft">
+        <div>
+          <p class="eyebrow">Personal Organizer</p>
+          <h1>TaskFlow Planner</h1>
+          <p class="subtitle">Structured daily planner for phone and desktop.</p>
+        </div>
+      </header>
+
+      <main class="content-wrap">
+        <section id="tasks" class="tab-panel active">
+          <div class="stats-grid">
+            <article class="stat-card">
+              <p class="muted">Completed today</p>
+              <h3 id="todaySummary">0 / 0</h3>
+            </article>
+            <article class="stat-card">
+              <p class="muted">Actions</p>
+              <div class="row wrap gap8">
+                <button id="toggleAddTaskBtn" class="btn primary">+ Add task</button>
+              </div>
+            </article>
+          </div>
+
+          <div id="taskFormCard" class="card hidden">
+            <div class="row between align-start">
+              <h2>Add task</h2>
+              <button id="closeTaskFormBtn" class="btn small">Close</button>
+            </div>
+            <form id="taskForm" class="task-form">
+              <input id="title" class="input" required maxlength="120" placeholder="Task title" />
+              <input id="notes" class="input" maxlength="200" placeholder="Notes (optional)" />
+
+              <div class="grid-2">
+                <label>
+                  Date
+                  <input id="date" class="input" type="date" required />
+                </label>
+                <label>
+                  Repeat
+                  <select id="repeat" class="input">
+                    <option value="none">No repeat</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom weekdays</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="grid-2">
+                <label>
+                  Start time
+                  <input id="startTime" class="input" type="time" required />
+                </label>
+                <label>
+                  End time
+                  <input id="endTime" class="input" type="time" required />
+                </label>
+              </div>
+
+              <label class="mt8">Task color presets</label>
+              <div id="taskColorPresets" class="preset-row"></div>
+              <div class="row gap8 mt8">
+                <button id="taskCustomColorBtn" class="btn small" type="button">Custom color</button>
+                <input id="taskCustomColorInput" class="input color hidden" type="color" value="#3b82f6" />
+              </div>
+
+              <div id="customDays" class="weekday-group hidden"></div>
+              <button class="btn primary big" type="submit">Save task</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="row between align-start">
+              <h2>Schedule</h2>
+              <input id="taskSearch" class="input schedule-search" placeholder="Search tasks..." />
+            </div>
+            <div id="taskList" class="task-list"></div>
+          </div>
+        </section>
+
+        <section id="calendar" class="tab-panel">
+          <div class="card">
+            <div class="row between">
+              <h2>Completion calendar</h2>
+              <div class="row gap8">
+                <button id="prevMonth" class="btn">←</button>
+                <p id="monthLabel" class="month-label"></p>
+                <button id="nextMonth" class="btn">→</button>
+              </div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+        </section>
+
+        <section id="settings" class="tab-panel">
+          <div class="card">
+            <h2>Appearance</h2>
+            <div class="settings-grid">
+              <label>Theme
+                <select id="theme" class="input">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                  <option value="light-gray">Light gray</option>
+                  <option value="dark-gray">Dark gray</option>
+                </select>
+              </label>
+
+              <label>Text size
+                <select id="fontSize" class="input">
+                  <option value="14">Small</option>
+                  <option value="16">Medium</option>
+                  <option value="18">Large</option>
+                </select>
+              </label>
+            </div>
+
+            <label class="mt8">Main color presets</label>
+            <div id="mainColorPresets" class="preset-row"></div>
+            <div class="row gap8 mt8">
+              <button id="mainCustomColorBtn" class="btn small" type="button">Custom main color</button>
+              <input id="mainCustomColorInput" class="input color hidden" type="color" value="#2563eb" />
+            </div>
+
+            <label class="mt8">Calendar low color presets</label>
+            <div id="lowColorPresets" class="preset-row"></div>
+            <div class="row gap8 mt8">
+              <button id="lowCustomColorBtn" class="btn small" type="button">Custom low color</button>
+              <input id="lowCustomColorInput" class="input color hidden" type="color" value="#ef4444" />
+            </div>
+
+            <label class="mt8">Calendar high color presets</label>
+            <div id="highColorPresets" class="preset-row"></div>
+            <div class="row gap8 mt8">
+              <button id="highCustomColorBtn" class="btn small" type="button">Custom high color</button>
+              <input id="highCustomColorInput" class="input color hidden" type="color" value="#22c55e" />
+            </div>
+
+            <div class="row end mt12">
+              <button id="saveSettings" class="btn primary">Save settings</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Data</h2>
+            <p class="muted">Saved automatically in your browser.</p>
+            <div class="row wrap gap8 mt8">
+              <button id="exportBtn" class="btn">Export</button>
+              <label class="btn">Import <input id="importFile" type="file" accept="application/json" hidden /></label>
+              <button id="clearBtn" class="btn danger">Clear all</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" role="tablist" aria-label="Primary">
+        <button class="tab active" data-tab="tasks" role="tab">Today</button>
+        <button class="tab" data-tab="calendar" role="tab">Calendar</button>
+        <button class="tab" data-tab="settings" role="tab">Settings</button>
+      </nav>
+    </div>
+
+    <template id="taskTemplate">
+      <article class="task-item">
+        <div class="time-col">
+          <span class="task-time"></span>
+          <span class="task-repeat muted"></span>
+        </div>
+        <div class="task-main">
+          <div class="row between align-start">
+            <div class="row align-start">
+              <span class="dot"></span>
+              <div>
+                <h4 class="task-title"></h4>
+                <p class="muted task-meta"></p>
+              </div>
+            </div>
+            <button class="btn small completeBtn">Done</button>
+          </div>
+          <div class="row end mt12">
+            <button class="btn small deleteBtn">Delete</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
