@@ -79,6 +79,9 @@ select.input, select.input option { background: var(--card); color: var(--text);
 .project-badge { font-size:.75em; border:1px solid var(--border); padding:4px 8px; border-radius:999px; color: var(--muted); }
 .task-item.completed .task-title,.task-item.completed .task-meta { text-decoration:line-through; opacity:.75; }
 
+.project-manager { display:flex; flex-direction:column; gap:8px; }
+.project-row { display:grid; grid-template-columns:1fr auto auto; gap:8px; align-items:center; }
+
 .month-label { min-width:130px; text-align:center; font-weight:600; }
 .calendar-grid { margin-top:12px; display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:7px; }
 .day-cell { border-radius:10px; border:1px solid var(--border); min-height:86px; padding:8px; display:flex; flex-direction:column; justify-content:space-between; }
@@ -101,6 +104,7 @@ select.input, select.input option { background: var(--card); color: var(--text);
   .task-item { grid-template-columns:1fr; }
   .time-col { border-right:0; border-bottom:1px dashed var(--border); padding-bottom:6px; }
   .schedule-search { max-width:100%; }
+  .project-row { grid-template-columns:1fr; }
 }
 
 

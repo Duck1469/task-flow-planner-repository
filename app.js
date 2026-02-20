@@ -27,6 +27,7 @@ const state = {
   selectedCalendarDate: null,
   customWeekdays: [1, 3],
   taskColor: "#3b82f6",
+  editingTaskId: null,
 };
 
 const el = (id) => document.getElementById(id);
@@ -149,12 +150,69 @@ function renderColorPresets(containerId, colors, selectedColor, customInputId, o
 
 function renderProjectSelect() {
   const select = el("projectSelect");
+  const current = select.value;
   select.innerHTML = "";
   state.projects.forEach((project) => {
     const o = document.createElement("option");
     o.value = project;
     o.textContent = project;
     select.appendChild(o);
+  });
+  if (current && state.projects.includes(current)) select.value = current;
+}
+
+function renderProjectManager() {
+  const wrap = el("projectManagerList");
+  if (!wrap) return;
+  wrap.innerHTML = "";
+  state.projects.forEach((project) => {
+    const row = document.createElement("div");
+    row.className = "project-row";
+
+    const nameInput = document.createElement("input");
+    nameInput.className = "input";
+    nameInput.value = project;
+    nameInput.maxLength = 50;
+
+    const renameBtn = document.createElement("button");
+    renameBtn.className = "btn small";
+    renameBtn.textContent = "Save";
+    renameBtn.onclick = async () => {
+      const nextName = nameInput.value.trim();
+      if (!nextName) return alert("Project name cannot be empty.");
+      const duplicate = state.projects.find((p) => p.toLowerCase() === nextName.toLowerCase() && p !== project);
+      if (duplicate) return alert("Project name already exists.");
+      state.projects = state.projects.map((p) => (p === project ? nextName : p));
+      state.tasks.forEach((t) => { if (t.project === project) t.project = nextName; });
+      save();
+      renderProjectSelect();
+      renderProjectManager();
+      renderTasks();
+      renderCalendar();
+      if (state.settings.sync.auto) await pushSync();
+    };
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn small danger";
+    delBtn.textContent = "Delete";
+    delBtn.disabled = project === "General";
+    delBtn.onclick = async () => {
+      if (project === "General") return;
+      if (!confirm(`Delete project "${project}"? Tasks will move to General.`)) return;
+      state.projects = state.projects.filter((p) => p !== project);
+      state.tasks.forEach((t) => { if (t.project === project) t.project = "General"; });
+      save();
+      renderProjectSelect();
+      renderProjectManager();
+      renderTasks();
+      renderCalendar();
+      if (state.settings.sync.auto) await pushSync();
+    };
+
+    row.appendChild(nameInput);
+    row.appendChild(renameBtn);
+    row.appendChild(delBtn);
+    wrap.appendChild(row);
   });
 }
 
@@ -218,6 +276,27 @@ function renderTasks() {
       : (task.repeat === "none" ? "One time" : `Repeats ${task.repeat}`);
     node.querySelector(".project-badge").textContent = task.project || "General";
     if (completed) node.querySelector(".task-item").classList.add("completed");
+
+    node.querySelector(".editBtn").onclick = () => {
+      state.editingTaskId = task.id;
+      el("taskFormCard").classList.remove("hidden");
+      el("title").value = task.title || "";
+      el("notes").value = task.notes || "";
+      el("date").value = task.date || localDateKey();
+      el("repeat").value = task.repeat || "none";
+      state.customWeekdays = [...(task.weekdays || [1, 3])];
+      renderWeekdayChips();
+      el("startTime").value = task.start || "";
+      el("endTime").value = task.end || "";
+      el("allDay").checked = !!task.allDay;
+      el("startTime").disabled = !!task.allDay;
+      el("endTime").disabled = !!task.allDay;
+      if (state.projects.includes(task.project)) el("projectSelect").value = task.project;
+      el("projectInput").value = "";
+      state.taskColor = task.color || state.taskColor;
+      setupPresetUI();
+      el("title").focus();
+    };
 
     const doneBtn = node.querySelector(".completeBtn");
     doneBtn.textContent = completed ? "Undo" : "Done";
@@ -421,10 +500,12 @@ function setupHandlers() {
   el("toggleNavSizeBtn").textContent = state.settings.navSize === "small" ? "Make buttons bigger" : "Make buttons smaller";
 
   renderProjectSelect();
+  renderProjectManager();
   renderWeekdayChips();
   setupPresetUI();
 
   el("toggleAddTaskBtn").onclick = () => {
+    state.editingTaskId = null;
     el("taskFormCard").classList.remove("hidden");
     el("repeat").value = "custom";
     renderWeekdayChips();
@@ -494,7 +575,7 @@ function setupHandlers() {
     if (repeat === "custom" && !state.customWeekdays.length) return alert("Pick at least one custom weekday.");
 
     const task = {
-      id: crypto.randomUUID(),
+      id: state.editingTaskId || crypto.randomUUID(),
       title: el("title").value.trim(),
       notes: el("notes").value.trim(),
       project: chosenProject,
@@ -509,7 +590,13 @@ function setupHandlers() {
     };
 
     if (!task.title) return;
-    state.tasks.push(task);
+    if (state.editingTaskId) {
+      state.tasks = state.tasks.map((t) => (t.id === state.editingTaskId
+        ? { ...task, completedDates: t.completedDates || [] }
+        : t));
+    } else {
+      state.tasks.push(task);
+    }
     save();
     if (state.settings.sync.auto) await pushSync();
 
@@ -521,8 +608,10 @@ function setupHandlers() {
     el("endTime").disabled = false;
     renderWeekdayChips();
     el("taskFormCard").classList.add("hidden");
+    state.editingTaskId = null;
 
     renderProjectSelect();
+    renderProjectManager();
     renderTasks();
     renderCalendar();
   };

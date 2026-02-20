@@ -185,6 +185,12 @@
               <button id="clearBtn" class="btn danger">Clear all</button>
             </div>
           </div>
+
+          <div class="card">
+            <h2>Projects</h2>
+            <p class="muted">Edit or delete your projects. Deleting moves tasks to General.</p>
+            <div id="projectManagerList" class="project-manager mt8"></div>
+          </div>
         </section>
       </main>
 
@@ -214,7 +220,10 @@
           </div>
           <div class="row between mt12 wrap">
             <span class="project-badge"></span>
-            <button class="btn small deleteBtn">Delete</button>
+            <div class="row gap8">
+              <button class="btn small editBtn">Edit</button>
+              <button class="btn small deleteBtn">Delete</button>
+            </div>
           </div>
         </div>
       </article>
