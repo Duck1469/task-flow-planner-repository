@@ -21,6 +21,7 @@ const state = {
     fullscreenForever: false,
     sync: { token: "", gistId: "", auto: false },
     navPosition: "down",
+    navSize: "big",
   },
   viewDate: new Date(),
   selectedCalendarDate: null,
@@ -65,6 +66,7 @@ function applyData(data) {
     state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
   }
   if (!state.settings.navPosition) state.settings.navPosition = "down";
+  if (!state.settings.navSize) state.settings.navSize = "big";
   state.taskColor = state.settings.mainColor || state.taskColor;
 }
 
@@ -305,6 +307,7 @@ function applySettings() {
   document.documentElement.style.setProperty("--primary", state.settings.mainColor);
   document.body.classList.remove("nav-down", "nav-up", "nav-left", "nav-right");
   document.body.classList.add(`nav-${state.settings.navPosition || "down"}`);
+  document.body.classList.toggle("nav-compact", state.settings.navSize === "small");
 }
 
 function updateFullscreenToggleLabel() {
@@ -401,6 +404,7 @@ function setupHandlers() {
   el("syncToken").value = state.settings.sync.token || "";
   el("syncGistId").value = state.settings.sync.gistId || "";
   el("syncAuto").checked = !!state.settings.sync.auto;
+  el("toggleNavSizeBtn").textContent = state.settings.navSize === "small" ? "Make buttons bigger" : "Make buttons smaller";
 
   renderProjectSelect();
   renderWeekdayChips();
@@ -418,6 +422,13 @@ function setupHandlers() {
   el("taskSearch").oninput = renderTasks;
   el("fullscreenToggleBtn").onclick = toggleFullscreen;
   updateFullscreenToggleLabel();
+
+  el("toggleNavSizeBtn").onclick = () => {
+    state.settings.navSize = state.settings.navSize === "small" ? "big" : "small";
+    el("toggleNavSizeBtn").textContent = state.settings.navSize === "small" ? "Make buttons bigger" : "Make buttons smaller";
+    applySettings();
+    save();
+  };
 
   el("taskCustomColorInput").oninput = (e) => { state.taskColor = e.target.value; setupPresetUI(); };
   el("mainCustomColorInput").oninput = (e) => { state.settings.mainColor = e.target.value; applySettings(); setupPresetUI(); };
@@ -533,6 +544,7 @@ function setupHandlers() {
       fullscreenForever: false,
       sync: { token: "", gistId: "", auto: false },
       navPosition: "down",
+      navSize: "big",
     };
     state.taskColor = "#3b82f6";
     applySettings();

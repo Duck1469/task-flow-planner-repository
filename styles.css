@@ -89,7 +89,7 @@ select.input, select.input option { background: var(--card); color: var(--text);
 .muted { color: var(--muted); }
 
 .bottom-nav { position:fixed; left:0; right:0; bottom:0; max-width:1040px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:10px 14px calc(10px + env(safe-area-inset-bottom)); background:var(--surface); border-top:1px solid var(--border); }
-.tab { border:1px solid var(--border); border-radius:12px; padding:11px 8px; background:var(--card); color:var(--text); cursor:pointer; font-weight:600; }
+.tab { border:1px solid var(--border); border-radius:12px; padding:14px 10px; background:var(--card); color:var(--text); cursor:pointer; font-weight:700; font-size:1.03em; }
 .tab.active { background: var(--primary); color:#fff; border-color:transparent; }
 
 @media (max-width:760px) {
@@ -115,3 +115,10 @@ body.nav-right .app-shell { padding-right:110px; }
   body.nav-left .app-shell { padding-left:98px; }
   body.nav-right .app-shell { padding-right:98px; }
 }
+
+
+body.nav-compact .tab { padding: 9px 8px; font-size: .9em; font-weight: 600; }
+body.nav-compact.nav-left .bottom-nav,
+body.nav-compact.nav-right .bottom-nav { width: 80px; }
+body.nav-compact.nav-left .app-shell { padding-left: 96px; }
+body.nav-compact.nav-right .app-shell { padding-right: 96px; }
