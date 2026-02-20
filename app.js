@@ -110,6 +110,7 @@ function renderTabs() {
       document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
       el(btn.dataset.tab).classList.add("active");
       if (btn.dataset.tab === "calendar") renderCalendar();
+      if (btn.dataset.tab === "settings") updateFullscreenToggleLabel();
     };
   });
 }
@@ -245,6 +246,12 @@ function applySettings() {
   document.documentElement.style.setProperty("--primary", state.settings.mainColor);
 }
 
+function updateFullscreenToggleLabel() {
+  const btn = el("fullscreenToggleBtn");
+  if (!btn) return;
+  btn.textContent = document.fullscreenElement ? "Exit fullscreen" : "Enter fullscreen";
+}
+
 async function enterFullscreen() {
   try {
     if (!document.fullscreenElement) {
@@ -253,6 +260,17 @@ async function enterFullscreen() {
   } catch {
     // Browser may block without user gesture.
   }
+  updateFullscreenToggleLabel();
+}
+
+async function toggleFullscreen() {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  } catch {
+    // Browser may block without user gesture.
+  }
+  updateFullscreenToggleLabel();
 }
 
 function setupPresetUI() {
@@ -299,7 +317,8 @@ function setupHandlers() {
   };
   el("closeTaskFormBtn").onclick = () => el("taskFormCard").classList.add("hidden");
 
-  el("enterFullscreenNow").onclick = enterFullscreen;
+  el("fullscreenToggleBtn").onclick = toggleFullscreen;
+  updateFullscreenToggleLabel();
 
   el("taskCustomColorInput").oninput = (e) => {
     state.taskColor = e.target.value;
@@ -437,3 +456,4 @@ applySettings();
 renderTasks();
 renderCalendar();
 if (state.settings.fullscreenDefault) enterFullscreen();
+document.addEventListener("fullscreenchange", updateFullscreenToggleLabel);
