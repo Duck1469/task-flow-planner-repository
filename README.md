@@ -20,6 +20,7 @@ A clean task planner with **Projects**, **Today Schedule**, **Calendar day detai
 ### Settings
 - Themes: Light (white), Dark (black), Light Gray, Dark Gray.
 - Text size control.
+- Navigation position for Today/Calendar/Settings tabs: top, bottom, left, or right.
 - Main accent + calendar color presets + custom.
 - Always fullscreen toggle + fullscreen button.
 

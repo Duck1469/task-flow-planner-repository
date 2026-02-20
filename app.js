@@ -20,6 +20,7 @@ const state = {
     highColor: "#22c55e",
     fullscreenForever: false,
     sync: { token: "", gistId: "", auto: false },
+    navPosition: "down",
   },
   viewDate: new Date(),
   selectedCalendarDate: null,
@@ -63,6 +64,7 @@ function applyData(data) {
   if (state.settings.fullscreenDefault !== undefined && state.settings.fullscreenForever === undefined) {
     state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
   }
+  if (!state.settings.navPosition) state.settings.navPosition = "down";
   state.taskColor = state.settings.mainColor || state.taskColor;
 }
 
@@ -301,6 +303,8 @@ function applySettings() {
   document.body.classList.add(state.settings.theme);
   document.body.style.fontSize = `${state.settings.fontSize}px`;
   document.documentElement.style.setProperty("--primary", state.settings.mainColor);
+  document.body.classList.remove("nav-down", "nav-up", "nav-left", "nav-right");
+  document.body.classList.add(`nav-${state.settings.navPosition || "down"}`);
 }
 
 function updateFullscreenToggleLabel() {
@@ -388,6 +392,7 @@ function setupHandlers() {
   el("date").value = localDateKey();
   el("theme").value = state.settings.theme;
   el("fontSize").value = String(state.settings.fontSize);
+  el("navPosition").value = state.settings.navPosition || "down";
   el("fullscreenForever").checked = state.settings.fullscreenForever;
   el("taskCustomColorInput").value = state.taskColor;
   el("mainCustomColorInput").value = state.settings.mainColor;
@@ -473,6 +478,7 @@ function setupHandlers() {
   el("saveSettings").onclick = async () => {
     state.settings.theme = el("theme").value;
     state.settings.fontSize = Number(el("fontSize").value);
+    state.settings.navPosition = el("navPosition").value;
     state.settings.fullscreenForever = el("fullscreenForever").checked;
     state.settings.sync.token = el("syncToken").value.trim();
     state.settings.sync.gistId = el("syncGistId").value.trim();
@@ -526,6 +532,7 @@ function setupHandlers() {
       highColor: "#22c55e",
       fullscreenForever: false,
       sync: { token: "", gistId: "", auto: false },
+      navPosition: "down",
     };
     state.taskColor = "#3b82f6";
     applySettings();
