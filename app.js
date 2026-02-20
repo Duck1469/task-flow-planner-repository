@@ -267,12 +267,18 @@ function renderTasks() {
       return true;
     })
     .sort((a, b) => {
+      if ((b.pinned ? 1 : 0) !== (a.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+      const prio = { high: 3, medium: 2, low: 1 };
       if (sortBy === "title") return a.title.localeCompare(b.title);
       if (sortBy === "project") return (a.project || "").localeCompare(b.project || "");
+      if (sortBy === "priority") return (prio[b.priority || "medium"] || 2) - (prio[a.priority || "medium"] || 2);
       return a.start.localeCompare(b.start);
     });
 
-  el("todaySummary").textContent = `${items.filter((t) => isCompleted(t, date)).length} / ${items.length}`;
+  const doneCount = items.filter((t) => isCompleted(t, date)).length;
+  el("todaySummary").textContent = `${doneCount} / ${items.length}`;
+  el("remainingSummary").textContent = `${Math.max(items.length - doneCount, 0)} left`;
+  el("todayProgress").style.width = `${items.length ? Math.round((doneCount / items.length) * 100) : 0}%`;
   list.innerHTML = "";
   if (!items.length) {
     list.innerHTML = `<p class="muted">No tasks for today. Add one with + Add task.</p>`;
@@ -291,7 +297,20 @@ function renderTasks() {
       ? `Custom: ${(task.weekdays || []).map((d) => days[d]).join(", ")}`
       : (task.repeat === "none" ? "One time" : `Repeats ${task.repeat}`);
     node.querySelector(".project-badge").textContent = task.project || "General";
+    const pr = task.priority || "medium";
+    const prEl = node.querySelector(".priority-badge");
+    prEl.textContent = `Priority: ${pr}`;
+    prEl.classList.add(pr);
     if (completed) node.querySelector(".task-item").classList.add("completed");
+    if (task.pinned) node.querySelector(".task-item").classList.add("pinned");
+
+    node.querySelector(".pinBtn").textContent = task.pinned ? "Unpin" : "Pin";
+    node.querySelector(".pinBtn").onclick = async () => {
+      task.pinned = !task.pinned;
+      save();
+      renderTasks();
+      if (state.settings.sync.auto) await pushSync();
+    };
 
     node.querySelector(".editBtn").onclick = () => {
       state.editingTaskId = task.id;
@@ -309,6 +328,7 @@ function renderTasks() {
       el("endTime").disabled = !!task.allDay;
       if (state.projects.includes(task.project)) el("projectSelect").value = task.project;
       el("projectInput").value = "";
+      el("priority").value = task.priority || "medium";
       state.taskColor = task.color || state.taskColor;
       setupPresetUI();
       el("title").focus();
@@ -319,6 +339,7 @@ function renderTasks() {
         ...task,
         id: crypto.randomUUID(),
         title: `${task.title} (copy)`,
+        pinned: false,
         completedDates: [],
       };
       state.tasks.push(dup);
@@ -643,6 +664,7 @@ function setupHandlers() {
       title: el("title").value.trim(),
       notes: el("notes").value.trim(),
       project: chosenProject,
+      priority: el("priority").value,
       date: el("date").value,
       start,
       end,
@@ -650,13 +672,14 @@ function setupHandlers() {
       weekdays: repeat === "custom" ? [...state.customWeekdays] : [],
       allDay,
       color: state.taskColor,
+      pinned: false,
       completedDates: [],
     };
 
     if (!task.title) return;
     if (state.editingTaskId) {
       state.tasks = state.tasks.map((t) => (t.id === state.editingTaskId
-        ? { ...task, completedDates: t.completedDates || [] }
+        ? { ...task, pinned: !!t.pinned, completedDates: t.completedDates || [] }
         : t));
     } else {
       state.tasks.push(task);
@@ -668,6 +691,7 @@ function setupHandlers() {
     el("date").value = localDateKey();
     el("repeat").value = "custom";
     el("allDay").checked = false;
+    el("priority").value = "medium";
     el("startTime").disabled = false;
     el("endTime").disabled = false;
     renderWeekdayChips();

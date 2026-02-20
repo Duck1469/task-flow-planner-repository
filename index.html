@@ -22,6 +22,8 @@
             <article class="stat-card">
               <p class="muted">Completed today</p>
               <h3 id="todaySummary">0 / 0</h3>
+              <div class="progress-track mt8"><div id="todayProgress" class="progress-fill"></div></div>
+              <p id="remainingSummary" class="muted mt8">0 left</p>
             </article>
             <article class="stat-card">
               <p class="muted">Actions</p>
@@ -56,6 +58,14 @@
                 </label>
               </div>
 
+              <label>Priority
+                <select id="priority" class="input">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+
               <div id="customDays" class="weekday-group hidden"></div>
               <p id="customDaysSummary" class="muted hidden"></p>
 
@@ -88,6 +98,7 @@
                 <option value="time">Sort: Time</option>
                 <option value="title">Sort: Title</option>
                 <option value="project">Sort: Project</option>
+                <option value="priority">Sort: Priority</option>
               </select>
               <button id="markAllDoneBtn" class="btn small" type="button">Mark all done today</button>
               <button id="clearDoneTodayBtn" class="btn small" type="button">Clear done today</button>
@@ -233,8 +244,12 @@
             <button class="btn small completeBtn">Done</button>
           </div>
           <div class="row between mt12 wrap">
-            <span class="project-badge"></span>
+            <div class="row gap8 wrap">
+              <span class="project-badge"></span>
+              <span class="priority-badge"></span>
+            </div>
             <div class="row gap8">
+              <button class="btn small pinBtn">Pin</button>
               <button class="btn small editBtn">Edit</button>
               <button class="btn small duplicateBtn">Duplicate</button>
               <button class="btn small deleteBtn">Delete</button>
