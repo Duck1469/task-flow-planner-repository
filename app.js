@@ -232,21 +232,16 @@ function renderWeekdayChips() {
   const wrap = el("customDays");
   wrap.innerHTML = "";
   days.forEach((day, i) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = `chip ${state.customWeekdays.includes(i) ? "active" : ""}`;
-    chip.textContent = day;
-    chip.onclick = () => {
-      if (state.customWeekdays.includes(i)) state.customWeekdays = state.customWeekdays.filter((x) => x !== i);
-      else state.customWeekdays.push(i);
-      renderWeekdayChips();
-    };
-    wrap.appendChild(chip);
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = day;
+    opt.selected = state.customWeekdays.includes(i);
+    wrap.appendChild(opt);
   });
   renderCustomDaysSummary();
   const repeatEl = el("repeat");
   const isCustom = repeatEl && repeatEl.value === "custom";
-  wrap.classList.toggle("hidden", !isCustom);
+  el("customDaysWrap").classList.toggle("hidden", !isCustom);
   el("customDaysSummary").classList.toggle("hidden", !isCustom);
 }
 
@@ -326,6 +321,9 @@ function renderTasks() {
       el("allDay").checked = !!task.allDay;
       el("startTime").disabled = !!task.allDay;
       el("endTime").disabled = !!task.allDay;
+      el("startTime").required = !task.allDay;
+      el("endTime").required = !task.allDay;
+      el("timeRow").classList.toggle("hidden", !!task.allDay);
       if (state.projects.includes(task.project)) el("projectSelect").value = task.project;
       el("projectInput").value = "";
       el("priority").value = task.priority || "medium";
@@ -567,15 +565,23 @@ function setupHandlers() {
   el("closeTaskFormBtn").onclick = () => el("taskFormCard").classList.add("hidden");
   el("repeat").onchange = (e) => {
     const custom = e.target.value === "custom";
-    el("customDays").classList.toggle("hidden", !custom);
+    el("customDaysWrap").classList.toggle("hidden", !custom);
     el("customDaysSummary").classList.toggle("hidden", !custom);
     if (custom) renderCustomDaysSummary();
+  };
+
+  el("customDays").onchange = (e) => {
+    state.customWeekdays = Array.from(e.target.selectedOptions).map((o) => Number(o.value));
+    renderCustomDaysSummary();
   };
 
   el("allDay").onchange = (e) => {
     const allDay = e.target.checked;
     el("startTime").disabled = allDay;
     el("endTime").disabled = allDay;
+    el("startTime").required = !allDay;
+    el("endTime").required = !allDay;
+    el("timeRow").classList.toggle("hidden", allDay);
     if (allDay) {
       el("startTime").value = "00:00";
       el("endTime").value = "23:59";
@@ -650,7 +656,7 @@ function setupHandlers() {
     const allDay = el("allDay").checked;
     const start = allDay ? "00:00" : el("startTime").value;
     const end = allDay ? "23:59" : el("endTime").value;
-    if (!start || !end || end <= start) return alert("End time must be after start time.");
+    if (!allDay && (!start || !end || end <= start)) return alert("End time must be after start time.");
 
     const newProject = el("projectInput").value.trim();
     if (newProject && !state.projects.includes(newProject)) state.projects.push(newProject);
@@ -694,6 +700,9 @@ function setupHandlers() {
     el("priority").value = "medium";
     el("startTime").disabled = false;
     el("endTime").disabled = false;
+    el("startTime").required = true;
+    el("endTime").required = true;
+    el("timeRow").classList.remove("hidden");
     renderWeekdayChips();
     el("taskFormCard").classList.add("hidden");
     state.editingTaskId = null;

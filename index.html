@@ -66,10 +66,12 @@
                 </select>
               </label>
 
-              <div id="customDays" class="weekday-group hidden"></div>
+              <label id="customDaysWrap" class="hidden">Custom weekdays
+                <select id="customDays" class="input" multiple size="7"></select>
+              </label>
               <p id="customDaysSummary" class="muted hidden"></p>
 
-              <div class="grid-2">
+              <div id="timeRow" class="grid-2">
                 <label>Start time<input id="startTime" class="input" type="time" required /></label>
                 <label>End time<input id="endTime" class="input" type="time" required /></label>
               </div>
