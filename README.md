@@ -21,7 +21,7 @@ A clean task planner web app with **Projects**, **Today Schedule**, **Calendar**
 - Text size controls (Tiny → XXL).
 - Main accent color presets + custom color.
 - Calendar low/high color presets + custom color.
-- Fullscreen default + fullscreen toggle button.
+- Always-fullscreen toggle + fullscreen enter/exit button.
 
 ### Data
 - Auto-save in browser localStorage.

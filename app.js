@@ -17,7 +17,7 @@ const state = {
     mainColor: "#2563eb",
     lowColor: "#ef4444",
     highColor: "#22c55e",
-    fullscreenDefault: false,
+    fullscreenForever: false,
   },
   viewDate: new Date(),
   customWeekdays: [1, 5],
@@ -69,6 +69,7 @@ function load() {
     state.tasks = parsed.tasks || [];
     state.projects = parsed.projects?.length ? parsed.projects : ["General"];
     state.settings = { ...state.settings, ...(parsed.settings || {}) };
+    if (state.settings.fullscreenDefault !== undefined && state.settings.fullscreenForever === undefined) state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
     state.taskColor = state.settings.mainColor || state.taskColor;
   } catch {
     // ignore invalid saved data
@@ -322,7 +323,7 @@ function setupHandlers() {
   el("date").value = localDateKey();
   el("theme").value = state.settings.theme;
   el("fontSize").value = String(state.settings.fontSize);
-  el("fullscreenDefault").checked = state.settings.fullscreenDefault;
+  el("fullscreenForever").checked = state.settings.fullscreenForever;
   el("taskCustomColorInput").value = state.taskColor;
   el("mainCustomColorInput").value = state.settings.mainColor;
   el("lowCustomColorInput").value = state.settings.lowColor;
@@ -404,11 +405,11 @@ function setupHandlers() {
   el("saveSettings").onclick = async () => {
     state.settings.theme = el("theme").value;
     state.settings.fontSize = Number(el("fontSize").value);
-    state.settings.fullscreenDefault = el("fullscreenDefault").checked;
+    state.settings.fullscreenForever = el("fullscreenForever").checked;
     save();
     applySettings();
     renderCalendar();
-    if (state.settings.fullscreenDefault) await enterFullscreen();
+    if (state.settings.fullscreenForever) await enterFullscreen();
     alert("Settings saved.");
   };
 
@@ -430,6 +431,7 @@ function setupHandlers() {
         state.tasks = parsed.tasks || [];
         state.projects = parsed.projects?.length ? parsed.projects : ["General"];
         state.settings = { ...state.settings, ...(parsed.settings || {}) };
+    if (state.settings.fullscreenDefault !== undefined && state.settings.fullscreenForever === undefined) state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
         state.taskColor = state.settings.mainColor;
         save();
         applySettings();
@@ -456,7 +458,7 @@ function setupHandlers() {
       mainColor: "#2563eb",
       lowColor: "#ef4444",
       highColor: "#22c55e",
-      fullscreenDefault: false,
+      fullscreenForever: false,
     };
     state.taskColor = "#3b82f6";
     applySettings();
@@ -473,5 +475,8 @@ renderTabs();
 setupHandlers();
 renderTasks();
 renderCalendar();
-if (state.settings.fullscreenDefault) enterFullscreen();
-document.addEventListener("fullscreenchange", updateFullscreenToggleLabel);
+if (state.settings.fullscreenForever) enterFullscreen();
+document.addEventListener("fullscreenchange", () => {
+  updateFullscreenToggleLabel();
+  if (!document.fullscreenElement && state.settings.fullscreenForever) enterFullscreen();
+});
