@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow Planner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div>
+          <h1>TaskFlow Planner</h1>
+          <p class="subtitle">Plan your day, track progress, stay consistent.</p>
+        </div>
+        <button id="quickAddBtn" class="btn primary">+ Quick Add</button>
+      </header>
+
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-tab="tasks" role="tab">Today</button>
+        <button class="tab" data-tab="calendar" role="tab">Calendar</button>
+        <button class="tab" data-tab="settings" role="tab">Settings</button>
+      </nav>
+
+      <main>
+        <section id="tasks" class="tab-panel active">
+          <div class="card row between">
+            <div>
+              <h2>Today’s tasks</h2>
+              <p id="todaySummary" class="muted"></p>
+            </div>
+            <input id="taskSearch" class="input" placeholder="Search tasks..." />
+          </div>
+
+          <div class="card">
+            <h3>Add task</h3>
+            <form id="taskForm" class="task-form">
+              <input id="title" class="input" required maxlength="120" placeholder="Task title" />
+              <input id="notes" class="input" maxlength="200" placeholder="Notes (optional)" />
+              <div class="grid-2">
+                <input id="date" class="input" type="date" required />
+                <input id="color" class="input color" type="color" value="#3b82f6" />
+              </div>
+              <div class="grid-2">
+                <input id="startTime" class="input" type="time" required />
+                <input id="endTime" class="input" type="time" required />
+              </div>
+              <div class="grid-2">
+                <select id="repeat" class="input">
+                  <option value="none">No repeat</option>
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                  <option value="custom">Custom weekdays</option>
+                </select>
+                <button class="btn primary" type="submit">Add task</button>
+              </div>
+              <div id="customDays" class="weekday-group hidden"></div>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>Schedule</h3>
+            <div id="taskList" class="task-list"></div>
+          </div>
+        </section>
+
+        <section id="calendar" class="tab-panel">
+          <div class="card row between">
+            <h2>Calendar completion</h2>
+            <div class="row">
+              <button id="prevMonth" class="btn">←</button>
+              <p id="monthLabel"></p>
+              <button id="nextMonth" class="btn">→</button>
+            </div>
+          </div>
+          <div class="card">
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+        </section>
+
+        <section id="settings" class="tab-panel">
+          <div class="card">
+            <h2>Appearance</h2>
+            <div class="settings-grid">
+              <label>Theme
+                <select id="theme" class="input">
+                  <option value="light">Light</option>
+                  <option value="dark">Dark</option>
+                </select>
+              </label>
+              <label>Text size
+                <select id="fontSize" class="input">
+                  <option value="14">Small</option>
+                  <option value="16">Medium</option>
+                  <option value="18">Large</option>
+                </select>
+              </label>
+              <label>Low completion color
+                <input id="lowColor" class="input color" type="color" value="#ef4444" />
+              </label>
+              <label>High completion color
+                <input id="highColor" class="input color" type="color" value="#22c55e" />
+              </label>
+            </div>
+            <div class="row end mt12">
+              <button id="saveSettings" class="btn primary">Save settings</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Data</h3>
+            <p class="muted">Progress is saved automatically in your browser.</p>
+            <div class="row gap8">
+              <button id="exportBtn" class="btn">Export data</button>
+              <label class="btn">Import data <input id="importFile" type="file" accept="application/json" hidden /></label>
+              <button id="clearBtn" class="btn danger">Clear all</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <template id="taskTemplate">
+      <article class="task-item">
+        <div class="row between">
+          <div class="row">
+            <span class="dot"></span>
+            <div>
+              <h4 class="task-title"></h4>
+              <p class="muted task-meta"></p>
+            </div>
+          </div>
+          <div class="row gap8">
+            <button class="btn small completeBtn">Done</button>
+            <button class="btn small deleteBtn">Delete</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
