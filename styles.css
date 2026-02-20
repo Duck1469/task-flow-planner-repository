@@ -62,6 +62,7 @@ select.input, select.input option { background: var(--card); color: var(--text);
 .color-preset.active { outline:2px solid var(--text); outline-offset:2px; }
 .inline-label { display:flex; align-items:center; gap:8px; font-size:.92em; }
 .custom-preset { display:flex; align-items:center; justify-content:center; font-weight:700; background:var(--card); color:var(--text); }
+.settings-section-title { margin: 10px 0 8px; font-size: .95em; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
 
 .weekday-group { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
 .chip { border:1px solid var(--border); border-radius:999px; background:var(--card); color:var(--text); padding:6px 10px; cursor:pointer; }

@@ -9,6 +9,18 @@ const PRESETS = {
   high: ["#22c55e", "#14b8a6", "#3b82f6", "#8b5cf6"],
 };
 
+const DEFAULT_FEATURES = {
+  priority: true,
+  pinning: true,
+  duplicate: true,
+  allDay: true,
+  customRepeat: true,
+  scheduleTools: true,
+  calendarNow: true,
+  sync: true,
+  projectManager: true,
+};
+
 const state = {
   tasks: [],
   projects: ["General"],
@@ -22,6 +34,7 @@ const state = {
     sync: { token: "", gistId: "", auto: false },
     navPosition: "left",
     navSize: "big",
+    features: { ...DEFAULT_FEATURES },
   },
   viewDate: new Date(),
   selectedCalendarDate: null,
@@ -70,6 +83,7 @@ function applyData(data) {
   }
   if (!state.settings.navPosition) state.settings.navPosition = "left";
   if (!state.settings.navSize) state.settings.navSize = "big";
+  state.settings.features = { ...DEFAULT_FEATURES, ...(state.settings.features || {}) };
   state.taskColor = state.settings.mainColor || state.taskColor;
 }
 
@@ -240,7 +254,7 @@ function renderWeekdayChips() {
   });
   renderCustomDaysSummary();
   const repeatEl = el("repeat");
-  const isCustom = repeatEl && repeatEl.value === "custom";
+  const isCustom = state.settings.features.customRepeat && repeatEl && repeatEl.value === "custom";
   el("customDaysWrap").classList.toggle("hidden", !isCustom);
   el("customDaysSummary").classList.toggle("hidden", !isCustom);
 }
@@ -262,11 +276,11 @@ function renderTasks() {
       return true;
     })
     .sort((a, b) => {
-      if ((b.pinned ? 1 : 0) !== (a.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+      if (state.settings.features.pinning && (b.pinned ? 1 : 0) !== (a.pinned ? 1 : 0)) return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
       const prio = { high: 3, medium: 2, low: 1 };
       if (sortBy === "title") return a.title.localeCompare(b.title);
       if (sortBy === "project") return (a.project || "").localeCompare(b.project || "");
-      if (sortBy === "priority") return (prio[b.priority || "medium"] || 2) - (prio[a.priority || "medium"] || 2);
+      if (sortBy === "priority" && state.settings.features.priority) return (prio[b.priority || "medium"] || 2) - (prio[a.priority || "medium"] || 2);
       return a.start.localeCompare(b.start);
     });
 
@@ -292,15 +306,22 @@ function renderTasks() {
       ? `Custom: ${(task.weekdays || []).map((d) => days[d]).join(", ")}`
       : (task.repeat === "none" ? "One time" : `Repeats ${task.repeat}`);
     node.querySelector(".project-badge").textContent = task.project || "General";
-    const pr = task.priority || "medium";
     const prEl = node.querySelector(".priority-badge");
-    prEl.textContent = `Priority: ${pr}`;
-    prEl.classList.add(pr);
+    if (state.settings.features.priority) {
+      const pr = task.priority || "medium";
+      prEl.textContent = `Priority: ${pr}`;
+      prEl.classList.add(pr);
+      prEl.classList.remove("hidden");
+    } else {
+      prEl.classList.add("hidden");
+    }
     if (completed) node.querySelector(".task-item").classList.add("completed");
-    if (task.pinned) node.querySelector(".task-item").classList.add("pinned");
+    if (state.settings.features.pinning && task.pinned) node.querySelector(".task-item").classList.add("pinned");
 
+    node.querySelector(".pinBtn").classList.toggle("hidden", !state.settings.features.pinning);
     node.querySelector(".pinBtn").textContent = task.pinned ? "Unpin" : "Pin";
     node.querySelector(".pinBtn").onclick = async () => {
+      if (!state.settings.features.pinning) return;
       task.pinned = !task.pinned;
       save();
       renderTasks();
@@ -332,7 +353,9 @@ function renderTasks() {
       el("title").focus();
     };
 
+    node.querySelector(".duplicateBtn").classList.toggle("hidden", !state.settings.features.duplicate);
     node.querySelector(".duplicateBtn").onclick = async () => {
+      if (!state.settings.features.duplicate) return;
       const dup = {
         ...task,
         id: crypto.randomUUID(),
@@ -450,6 +473,37 @@ function applySettings() {
   document.body.classList.remove("nav-down", "nav-up", "nav-left", "nav-right");
   document.body.classList.add(`nav-${state.settings.navPosition || "left"}`);
   document.body.classList.toggle("nav-compact", state.settings.navSize === "small");
+  applyFeatureVisibility();
+}
+
+function applyFeatureVisibility() {
+  const f = state.settings.features || DEFAULT_FEATURES;
+  el("priorityField")?.classList.toggle("hidden", !f.priority);
+  el("allDayToggle")?.classList.toggle("hidden", !f.allDay);
+  el("scheduleTools")?.classList.toggle("hidden", !f.scheduleTools);
+  el("calendarNow")?.classList.toggle("hidden", !f.calendarNow);
+  el("syncCard")?.classList.toggle("hidden", !f.sync);
+  el("projectsCard")?.classList.toggle("hidden", !f.projectManager);
+
+  const customOption = el("repeat")?.querySelector('option[value="custom"]');
+  if (customOption) customOption.hidden = !f.customRepeat;
+  if (!f.customRepeat && el("repeat")?.value === "custom") el("repeat").value = "none";
+  if (!f.customRepeat) state.customWeekdays = [];
+
+  if (!f.allDay) {
+    el("allDay").checked = false;
+    el("timeRow").classList.remove("hidden");
+    el("startTime").disabled = false;
+    el("endTime").disabled = false;
+    el("startTime").required = true;
+    el("endTime").required = true;
+  }
+
+  if (!f.priority && state.taskSort === "priority") {
+    state.taskSort = "time";
+    if (el("taskSort")) el("taskSort").value = "time";
+  }
+  renderWeekdayChips();
 }
 
 function updateFullscreenToggleLabel() {
@@ -546,6 +600,15 @@ function setupHandlers() {
   el("syncToken").value = state.settings.sync.token || "";
   el("syncGistId").value = state.settings.sync.gistId || "";
   el("syncAuto").checked = !!state.settings.sync.auto;
+  el("featPriority").checked = state.settings.features.priority;
+  el("featPinning").checked = state.settings.features.pinning;
+  el("featDuplicate").checked = state.settings.features.duplicate;
+  el("featAllDay").checked = state.settings.features.allDay;
+  el("featCustomRepeat").checked = state.settings.features.customRepeat;
+  el("featScheduleTools").checked = state.settings.features.scheduleTools;
+  el("featCalendarNow").checked = state.settings.features.calendarNow;
+  el("featSync").checked = state.settings.features.sync;
+  el("featProjectManager").checked = state.settings.features.projectManager;
   el("taskFilter").value = state.taskFilter;
   el("taskSort").value = state.taskSort;
   el("toggleNavSizeBtn").textContent = state.settings.navSize === "small" ? "Make buttons bigger" : "Make buttons smaller";
@@ -553,6 +616,7 @@ function setupHandlers() {
   renderProjectSelect();
   renderProjectManager();
   renderWeekdayChips();
+  applyFeatureVisibility();
   setupPresetUI();
 
   el("toggleAddTaskBtn").onclick = () => {
@@ -564,6 +628,7 @@ function setupHandlers() {
   };
   el("closeTaskFormBtn").onclick = () => el("taskFormCard").classList.add("hidden");
   el("repeat").onchange = (e) => {
+    if (!state.settings.features.customRepeat) return;
     const custom = e.target.value === "custom";
     el("customDaysWrap").classList.toggle("hidden", !custom);
     el("customDaysSummary").classList.toggle("hidden", !custom);
@@ -571,11 +636,13 @@ function setupHandlers() {
   };
 
   el("customDays").onchange = (e) => {
+    if (!state.settings.features.customRepeat) return;
     state.customWeekdays = Array.from(e.target.selectedOptions).map((o) => Number(o.value));
     renderCustomDaysSummary();
   };
 
   el("allDay").onchange = (e) => {
+    if (!state.settings.features.allDay) return;
     const allDay = e.target.checked;
     el("startTime").disabled = allDay;
     el("endTime").disabled = allDay;
@@ -721,12 +788,22 @@ function setupHandlers() {
     state.settings.fontSize = Number(el("fontSize").value);
     state.settings.navPosition = el("navPosition").value;
     state.settings.fullscreenForever = el("fullscreenForever").checked;
+    state.settings.features.priority = el("featPriority").checked;
+    state.settings.features.pinning = el("featPinning").checked;
+    state.settings.features.duplicate = el("featDuplicate").checked;
+    state.settings.features.allDay = el("featAllDay").checked;
+    state.settings.features.customRepeat = el("featCustomRepeat").checked;
+    state.settings.features.scheduleTools = el("featScheduleTools").checked;
+    state.settings.features.calendarNow = el("featCalendarNow").checked;
+    state.settings.features.sync = el("featSync").checked;
+    state.settings.features.projectManager = el("featProjectManager").checked;
     state.settings.sync.token = el("syncToken").value.trim();
     state.settings.sync.gistId = el("syncGistId").value.trim();
     state.settings.sync.auto = el("syncAuto").checked;
     save();
     applySettings();
     renderCalendar();
+    renderTasks();
     if (state.settings.fullscreenForever) await enterFullscreen();
     if (state.settings.sync.auto) await pushSync();
     alert("Settings saved.");
@@ -775,6 +852,7 @@ function setupHandlers() {
       sync: { token: "", gistId: "", auto: false },
       navPosition: "left",
       navSize: "big",
+      features: { ...DEFAULT_FEATURES },
     };
     state.taskColor = "#3b82f6";
     applySettings();

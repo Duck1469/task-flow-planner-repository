@@ -58,7 +58,7 @@
                 </label>
               </div>
 
-              <label>Priority
+              <label id="priorityField">Priority
                 <select id="priority" class="input">
                   <option value="low">Low</option>
                   <option value="medium" selected>Medium</option>
@@ -75,7 +75,7 @@
                 <label>Start time<input id="startTime" class="input" type="time" required /></label>
                 <label>End time<input id="endTime" class="input" type="time" required /></label>
               </div>
-              <label class="inline-label mt8"><input id="allDay" type="checkbox" /> All day task</label>
+              <label id="allDayToggle" class="inline-label mt8"><input id="allDay" type="checkbox" /> All day task</label>
 
               <label class="mt8">Task color presets</label>
               <div id="taskColorPresets" class="preset-row"></div>
@@ -90,7 +90,7 @@
               <h2>Schedule</h2>
               <input id="taskSearch" class="input schedule-search" placeholder="Search tasks or project..." />
             </div>
-            <div class="row wrap gap8 mt8">
+            <div id="scheduleTools" class="row wrap gap8 mt8">
               <select id="taskFilter" class="input compact-input">
                 <option value="all">Show: All</option>
                 <option value="pending">Show: Pending</option>
@@ -132,6 +132,7 @@
         <section id="settings" class="tab-panel">
           <div class="card">
             <h2>Appearance</h2>
+            <h3 class="settings-section-title">Theme & Layout</h3>
             <div class="settings-grid">
               <label>Theme
                 <select id="theme" class="input">
@@ -174,6 +175,8 @@
               <button id="toggleNavSizeBtn" class="btn small" type="button">Make buttons smaller</button>
             </div>
 
+            <h3 class="settings-section-title mt12">Colors</h3>
+
             <label class="mt8">Main color presets</label>
             <div id="mainColorPresets" class="preset-row"></div>
             <input id="mainCustomColorInput" class="input color hidden" type="color" value="#2563eb" />
@@ -190,6 +193,26 @@
           </div>
 
           <div class="card">
+            <h2>Feature toggles</h2>
+            <p class="muted">Turn features on/off anytime.</p>
+            <h3 class="settings-section-title">Task features</h3>
+            <div class="settings-grid">
+              <label class="inline-label"><input id="featPriority" type="checkbox" checked /> Priority</label>
+              <label class="inline-label"><input id="featPinning" type="checkbox" checked /> Pinning</label>
+              <label class="inline-label"><input id="featDuplicate" type="checkbox" checked /> Duplicate button</label>
+              <label class="inline-label"><input id="featAllDay" type="checkbox" checked /> All-day tasks</label>
+              <label class="inline-label"><input id="featCustomRepeat" type="checkbox" checked /> Custom repeats</label>
+              <label class="inline-label"><input id="featScheduleTools" type="checkbox" checked /> Filter/sort toolbar</label>
+            </div>
+            <h3 class="settings-section-title mt12">App sections</h3>
+            <div class="settings-grid">
+              <label class="inline-label"><input id="featCalendarNow" type="checkbox" checked /> Calendar live time</label>
+              <label class="inline-label"><input id="featSync" type="checkbox" checked /> Phone sync section</label>
+              <label class="inline-label"><input id="featProjectManager" type="checkbox" checked /> Project manager section</label>
+            </div>
+          </div>
+
+          <div id="syncCard" class="card">
             <h2>Phone sync (GitHub)</h2>
             <p class="muted">Use one GitHub Gist to sync laptop + phone instantly.</p>
             <label>GitHub Token (gist permission)<input id="syncToken" class="input" type="password" placeholder="ghp_..." /></label>
@@ -203,7 +226,7 @@
             <p id="syncStatus" class="muted mt8"></p>
           </div>
 
-          <div class="card">
+          <div id="projectsCard" class="card">
             <h2>Data</h2>
             <p class="muted">Saved automatically in your browser.</p>
             <div class="row wrap gap8 mt8">
