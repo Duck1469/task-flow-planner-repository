@@ -25,10 +25,10 @@
             <article class="stat-card">
               <p class="muted">Completed today</p>
               <h3 id="todaySummary">0 / 0</h3>
-              <div class="progress-track mt8"><div id="todayProgress" class="progress-fill"></div></div>
+              <div id="todayProgressWrap" class="progress-track mt8"><div id="todayProgress" class="progress-fill"></div></div>
               <p id="remainingSummary" class="muted mt8">0 left</p>
             </article>
-            <article class="stat-card">
+            <article id="actionsCard" class="stat-card">
               <p class="muted">Actions</p>
               <button id="toggleAddTaskBtn" class="btn primary">+ Add task</button>
             </article>
@@ -105,8 +105,8 @@
                 <option value="project">Sort: Project</option>
                 <option value="priority">Sort: Priority</option>
               </select>
-              <button id="markAllDoneBtn" class="btn small" type="button">Mark all done today</button>
-              <button id="clearDoneTodayBtn" class="btn small" type="button">Clear done today</button>
+              <button id="markAllDoneBtn" class="btn small bulkActionBtn" type="button">Mark all done today</button>
+              <button id="clearDoneTodayBtn" class="btn small bulkActionBtn" type="button">Clear done today</button>
             </div>
             <div id="taskList" class="task-list"></div>
           </div>
@@ -116,7 +116,7 @@
           <div class="card">
             <div class="row between">
               <h2>Task calendar</h2>
-              <div class="row gap8">
+              <div id="calendarMonthNav" class="row gap8">
                 <button id="prevMonth" class="btn">←</button>
                 <p id="monthLabel" class="month-label"></p>
                 <button id="nextMonth" class="btn">→</button>
@@ -235,17 +235,31 @@
 
           <div class="card">
             <h2>Feature toggles</h2>
+            <h3 class="muted mt8">Today / Tasks</h3>
             <div class="settings-grid feature-grid">
               <label class="inline-label"><input id="toggleStats" type="checkbox" /> Show Today stats</label>
+              <label class="inline-label"><input id="toggleActionsCard" type="checkbox" /> Show Actions card</label>
+              <label class="inline-label"><input id="toggleProgressBar" type="checkbox" /> Show progress bar</label>
               <label class="inline-label"><input id="toggleScheduleToolbar" type="checkbox" /> Show Schedule toolbar</label>
-              <label class="inline-label"><input id="toggleCalendarFilters" type="checkbox" /> Show Calendar filters</label>
-              <label class="inline-label"><input id="toggleCalendarDayPanel" type="checkbox" /> Show Calendar day details</label>
               <label class="inline-label"><input id="toggleTaskSearch" type="checkbox" /> Show task search</label>
               <label class="inline-label"><input id="togglePriority" type="checkbox" /> Show priority selector</label>
               <label class="inline-label"><input id="toggleCustomRepeat" type="checkbox" /> Show custom-repeat weekdays picker</label>
               <label class="inline-label"><input id="toggleAllDay" type="checkbox" /> Show all-day task toggle</label>
               <label class="inline-label"><input id="togglePinning" type="checkbox" /> Show pinning controls</label>
               <label class="inline-label"><input id="toggleDuplicate" type="checkbox" /> Show duplicate button</label>
+              <label class="inline-label"><input id="toggleBulkActions" type="checkbox" /> Show bulk action buttons</label>
+            </div>
+
+            <h3 class="muted mt12">Calendar</h3>
+            <div class="settings-grid feature-grid">
+              <label class="inline-label"><input id="toggleCalendarFilters" type="checkbox" /> Show Calendar filters</label>
+              <label class="inline-label"><input id="toggleCalendarDayPanel" type="checkbox" /> Show Calendar day details</label>
+              <label class="inline-label"><input id="toggleCalendarNow" type="checkbox" /> Show current date/time label</label>
+              <label class="inline-label"><input id="toggleMonthNav" type="checkbox" /> Show month navigation</label>
+            </div>
+
+            <h3 class="muted mt12">Sections</h3>
+            <div class="settings-grid feature-grid">
               <label class="inline-label"><input id="toggleSyncCard" type="checkbox" /> Show phone sync section</label>
               <label class="inline-label"><input id="toggleDataCard" type="checkbox" /> Show data tools section</label>
               <label class="inline-label"><input id="toggleProjectsCard" type="checkbox" /> Show projects section</label>

@@ -94,8 +94,7 @@ select.input, select.input option { background: var(--card); color: var(--text);
 .task-item.completed .task-title,.task-item.completed .task-meta { text-decoration:line-through; opacity:.75; }
 
 body.schedule-agenda #taskList { position: relative; }
-body.schedule-agenda #taskList.agenda-has-items::before { content:""; position:absolute; left:47px; top:4px; bottom:4px; width:2px; background:color-mix(in srgb, var(--primary) 35%, transparent); }
-body.schedule-agenda .task-item { border-radius:16px; }
+body.schedule-agenda #taskList.agenda-has-items .task-item { border-left:3px solid color-mix(in srgb, var(--primary) 45%, transparent); border-radius:16px; }
 
 body.schedule-cards .task-item { grid-template-columns:1fr; }
 body.schedule-cards .time-col { border-right:0; border-bottom:1px dashed var(--border); padding-right:0; padding-bottom:6px; }

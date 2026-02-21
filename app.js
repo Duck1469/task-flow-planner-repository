@@ -27,15 +27,20 @@ const state = {
     allowPastCalendarEdit: true,
     featureToggles: {
       showStats: true,
+      showActionsCard: true,
+      showProgressBar: true,
       showScheduleToolbar: true,
       showCalendarFilters: true,
       showCalendarDayPanel: true,
+      showCalendarNow: true,
+      showMonthNav: true,
       showTaskSearch: true,
       showPriority: true,
       showCustomRepeat: true,
       showAllDayToggle: true,
       showPinning: true,
       showDuplicateButton: true,
+      showBulkActions: true,
       showSyncCard: true,
       showDataCard: true,
       showProjectsCard: true,
@@ -99,15 +104,20 @@ function applyData(data) {
   if (state.settings.allowPastCalendarEdit === undefined) state.settings.allowPastCalendarEdit = true;
   state.settings.featureToggles = {
     showStats: true,
+    showActionsCard: true,
+    showProgressBar: true,
     showScheduleToolbar: true,
     showCalendarFilters: true,
     showCalendarDayPanel: true,
+    showCalendarNow: true,
+    showMonthNav: true,
     showTaskSearch: true,
     showPriority: true,
     showCustomRepeat: true,
     showAllDayToggle: true,
     showPinning: true,
     showDuplicateButton: true,
+    showBulkActions: true,
     showSyncCard: true,
     showDataCard: true,
     showProjectsCard: true,
@@ -604,9 +614,13 @@ function applySettings() {
   document.body.classList.toggle("nav-compact", state.settings.navSize === "small");
   const ft = state.settings.featureToggles || {};
   el("todayStats")?.classList.toggle("hidden", !ft.showStats);
+  el("actionsCard")?.classList.toggle("hidden", !ft.showActionsCard);
+  el("todayProgressWrap")?.classList.toggle("hidden", !ft.showProgressBar);
   el("scheduleToolbar")?.classList.toggle("hidden", !ft.showScheduleToolbar);
   el("calendarFilters")?.classList.toggle("hidden", !ft.showCalendarFilters);
   el("calendarDayCard")?.classList.toggle("hidden", !ft.showCalendarDayPanel);
+  el("calendarNow")?.classList.toggle("hidden", !ft.showCalendarNow);
+  el("calendarMonthNav")?.classList.toggle("hidden", !ft.showMonthNav);
   el("taskSearch")?.classList.toggle("hidden", !ft.showTaskSearch);
   el("priorityWrap")?.classList.toggle("hidden", !ft.showPriority);
   el("customDaysWrap")?.classList.toggle("hidden", !ft.showCustomRepeat || (el("repeat")?.value !== "custom"));
@@ -618,6 +632,7 @@ function applySettings() {
   const prioSortOpt = document.querySelector('#taskSort option[value="priority"]');
   if (prioSortOpt) prioSortOpt.disabled = !ft.showPriority;
   if (!ft.showPriority && el("taskSort")?.value === "priority") el("taskSort").value = "time";
+  document.querySelectorAll(".bulkActionBtn").forEach((btn) => btn.classList.toggle("hidden", !ft.showBulkActions));
   document.querySelectorAll(".pinBtn").forEach((btn) => btn.classList.toggle("hidden", !ft.showPinning));
   document.querySelectorAll(".duplicateBtn").forEach((btn) => btn.classList.toggle("hidden", !ft.showDuplicateButton));
   document.querySelectorAll(".priority-badge").forEach((badge) => badge.classList.toggle("hidden", !ft.showPriority));
@@ -743,15 +758,20 @@ function setupHandlers() {
   el("calendarOnlyPending").checked = !!state.settings.calendarPendingOnly;
   el("allowPastCalendarEdit").checked = !!state.settings.allowPastCalendarEdit;
   el("toggleStats").checked = !!state.settings.featureToggles.showStats;
+  el("toggleActionsCard").checked = !!state.settings.featureToggles.showActionsCard;
+  el("toggleProgressBar").checked = !!state.settings.featureToggles.showProgressBar;
   el("toggleScheduleToolbar").checked = !!state.settings.featureToggles.showScheduleToolbar;
   el("toggleCalendarFilters").checked = !!state.settings.featureToggles.showCalendarFilters;
   el("toggleCalendarDayPanel").checked = !!state.settings.featureToggles.showCalendarDayPanel;
+  el("toggleCalendarNow").checked = !!state.settings.featureToggles.showCalendarNow;
+  el("toggleMonthNav").checked = !!state.settings.featureToggles.showMonthNav;
   el("toggleTaskSearch").checked = !!state.settings.featureToggles.showTaskSearch;
   el("togglePriority").checked = !!state.settings.featureToggles.showPriority;
   el("toggleCustomRepeat").checked = !!state.settings.featureToggles.showCustomRepeat;
   el("toggleAllDay").checked = !!state.settings.featureToggles.showAllDayToggle;
   el("togglePinning").checked = !!state.settings.featureToggles.showPinning;
   el("toggleDuplicate").checked = !!state.settings.featureToggles.showDuplicateButton;
+  el("toggleBulkActions").checked = !!state.settings.featureToggles.showBulkActions;
   el("toggleSyncCard").checked = !!state.settings.featureToggles.showSyncCard;
   el("toggleDataCard").checked = !!state.settings.featureToggles.showDataCard;
   el("toggleProjectsCard").checked = !!state.settings.featureToggles.showProjectsCard;
@@ -767,15 +787,20 @@ function setupHandlers() {
 
   [
     "toggleStats",
+    "toggleActionsCard",
+    "toggleProgressBar",
     "toggleScheduleToolbar",
     "toggleCalendarFilters",
     "toggleCalendarDayPanel",
+    "toggleCalendarNow",
+    "toggleMonthNav",
     "toggleTaskSearch",
     "togglePriority",
     "toggleCustomRepeat",
     "toggleAllDay",
     "togglePinning",
     "toggleDuplicate",
+    "toggleBulkActions",
     "toggleSyncCard",
     "toggleDataCard",
     "toggleProjectsCard",
@@ -783,15 +808,20 @@ function setupHandlers() {
     el(id).onchange = () => {
       state.settings.featureToggles = {
         showStats: el("toggleStats").checked,
+        showActionsCard: el("toggleActionsCard").checked,
+        showProgressBar: el("toggleProgressBar").checked,
         showScheduleToolbar: el("toggleScheduleToolbar").checked,
         showCalendarFilters: el("toggleCalendarFilters").checked,
         showCalendarDayPanel: el("toggleCalendarDayPanel").checked,
+        showCalendarNow: el("toggleCalendarNow").checked,
+        showMonthNav: el("toggleMonthNav").checked,
         showTaskSearch: el("toggleTaskSearch").checked,
         showPriority: el("togglePriority").checked,
         showCustomRepeat: el("toggleCustomRepeat").checked,
         showAllDayToggle: el("toggleAllDay").checked,
         showPinning: el("togglePinning").checked,
         showDuplicateButton: el("toggleDuplicate").checked,
+        showBulkActions: el("toggleBulkActions").checked,
         showSyncCard: el("toggleSyncCard").checked,
         showDataCard: el("toggleDataCard").checked,
         showProjectsCard: el("toggleProjectsCard").checked,
@@ -983,15 +1013,20 @@ function setupHandlers() {
     state.settings.allowPastCalendarEdit = el("allowPastCalendarEdit").checked;
     state.settings.featureToggles = {
       showStats: el("toggleStats").checked,
+      showActionsCard: el("toggleActionsCard").checked,
+      showProgressBar: el("toggleProgressBar").checked,
       showScheduleToolbar: el("toggleScheduleToolbar").checked,
       showCalendarFilters: el("toggleCalendarFilters").checked,
       showCalendarDayPanel: el("toggleCalendarDayPanel").checked,
+      showCalendarNow: el("toggleCalendarNow").checked,
+      showMonthNav: el("toggleMonthNav").checked,
       showTaskSearch: el("toggleTaskSearch").checked,
       showPriority: el("togglePriority").checked,
       showCustomRepeat: el("toggleCustomRepeat").checked,
       showAllDayToggle: el("toggleAllDay").checked,
       showPinning: el("togglePinning").checked,
       showDuplicateButton: el("toggleDuplicate").checked,
+      showBulkActions: el("toggleBulkActions").checked,
       showSyncCard: el("toggleSyncCard").checked,
       showDataCard: el("toggleDataCard").checked,
       showProjectsCard: el("toggleProjectsCard").checked,
@@ -1052,15 +1087,20 @@ function setupHandlers() {
       allowPastCalendarEdit: true,
       featureToggles: {
         showStats: true,
+        showActionsCard: true,
+        showProgressBar: true,
         showScheduleToolbar: true,
         showCalendarFilters: true,
         showCalendarDayPanel: true,
+        showCalendarNow: true,
+        showMonthNav: true,
         showTaskSearch: true,
         showPriority: true,
         showCustomRepeat: true,
         showAllDayToggle: true,
         showPinning: true,
         showDuplicateButton: true,
+        showBulkActions: true,
         showSyncCard: true,
         showDataCard: true,
         showProjectsCard: true,
