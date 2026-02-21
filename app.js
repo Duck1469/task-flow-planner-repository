@@ -745,6 +745,38 @@ function setupHandlers() {
   renderWeekdayChips();
   setupPresetUI();
 
+  [
+    "toggleStats",
+    "toggleScheduleToolbar",
+    "toggleCalendarFilters",
+    "toggleCalendarDayPanel",
+    "toggleTaskSearch",
+    "togglePriority",
+    "toggleCustomRepeat",
+    "toggleAllDay",
+    "toggleSyncCard",
+    "toggleDataCard",
+    "toggleProjectsCard",
+  ].forEach((id) => {
+    el(id).onchange = () => {
+      state.settings.featureToggles = {
+        showStats: el("toggleStats").checked,
+        showScheduleToolbar: el("toggleScheduleToolbar").checked,
+        showCalendarFilters: el("toggleCalendarFilters").checked,
+        showCalendarDayPanel: el("toggleCalendarDayPanel").checked,
+        showTaskSearch: el("toggleTaskSearch").checked,
+        showPriority: el("togglePriority").checked,
+        showCustomRepeat: el("toggleCustomRepeat").checked,
+        showAllDayToggle: el("toggleAllDay").checked,
+        showSyncCard: el("toggleSyncCard").checked,
+        showDataCard: el("toggleDataCard").checked,
+        showProjectsCard: el("toggleProjectsCard").checked,
+      };
+      applySettings();
+      save();
+    };
+  });
+
   el("toggleAddTaskBtn").onclick = () => {
     state.editingTaskId = null;
     el("taskFormCard").classList.remove("hidden");
