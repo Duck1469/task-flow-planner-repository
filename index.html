@@ -61,7 +61,7 @@
                 </label>
               </div>
 
-              <label>Priority
+              <label id="priorityWrap">Priority
                 <select id="priority" class="input">
                   <option value="low">Low</option>
                   <option value="medium" selected>Medium</option>
@@ -78,7 +78,7 @@
                 <label>Start time<input id="startTime" class="input" type="time" required /></label>
                 <label>End time<input id="endTime" class="input" type="time" required /></label>
               </div>
-              <label class="inline-label mt8"><input id="allDay" type="checkbox" /> All day task</label>
+              <label id="allDayWrap" class="inline-label mt8"><input id="allDay" type="checkbox" /> All day task</label>
 
               <label class="mt8">Task color presets</label>
               <div id="taskColorPresets" class="preset-row"></div>
@@ -113,7 +113,7 @@
         </section>
 
         <section id="calendar" class="tab-panel">
-          <div class="card">
+          <div id="appearanceCard" class="card">
             <div class="row between">
               <h2>Task calendar</h2>
               <div class="row gap8">
@@ -242,10 +242,17 @@
               <label class="inline-label"><input id="toggleScheduleToolbar" type="checkbox" /> Show Schedule toolbar</label>
               <label class="inline-label"><input id="toggleCalendarFilters" type="checkbox" /> Show Calendar filters</label>
               <label class="inline-label"><input id="toggleCalendarDayPanel" type="checkbox" /> Show Calendar day details</label>
+              <label class="inline-label"><input id="toggleTaskSearch" type="checkbox" /> Show task search</label>
+              <label class="inline-label"><input id="togglePriority" type="checkbox" /> Show priority selector</label>
+              <label class="inline-label"><input id="toggleCustomRepeat" type="checkbox" /> Show custom-repeat weekdays picker</label>
+              <label class="inline-label"><input id="toggleAllDay" type="checkbox" /> Show all-day task toggle</label>
+              <label class="inline-label"><input id="toggleSyncCard" type="checkbox" /> Show phone sync section</label>
+              <label class="inline-label"><input id="toggleDataCard" type="checkbox" /> Show data tools section</label>
+              <label class="inline-label"><input id="toggleProjectsCard" type="checkbox" /> Show projects section</label>
             </div>
           </div>
 
-          <div class="card">
+          <div id="syncCard" class="card">
             <h2>Phone sync (GitHub)</h2>
             <p class="muted">Use one GitHub Gist to sync laptop + phone instantly.</p>
             <label>GitHub Token (gist permission)<input id="syncToken" class="input" type="password" placeholder="ghp_..." /></label>
@@ -259,7 +266,7 @@
             <p id="syncStatus" class="muted mt8"></p>
           </div>
 
-          <div class="card">
+          <div id="dataCard" class="card">
             <h2>Data</h2>
             <p class="muted">Saved automatically in your browser.</p>
             <div class="row wrap gap8 mt8">
@@ -269,7 +276,7 @@
             </div>
           </div>
 
-          <div class="card">
+          <div id="projectsCard" class="card">
             <h2>Projects</h2>
             <p class="muted">Edit or delete your projects. Deleting moves tasks to General.</p>
             <div id="projectManagerList" class="project-manager mt8"></div>
