@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow Planner</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar card-soft">
+        <div>
+          <p class="eyebrow">Personal Organizer</p>
+          <h1>TaskFlow Planner</h1>
+          <p class="subtitle">Projects, schedule, calendar, and sync.</p>
+        </div>
+      </header>
+
+      <main class="content-wrap">
+        <section id="tasks" class="tab-panel active">
+          <div class="stats-grid">
+            <article class="stat-card">
+              <p class="muted">Completed today</p>
+              <h3 id="todaySummary">0 / 0</h3>
+              <div class="progress-track mt8"><div id="todayProgress" class="progress-fill"></div></div>
+              <p id="remainingSummary" class="muted mt8">0 left</p>
+            </article>
+            <article class="stat-card">
+              <p class="muted">Actions</p>
+              <button id="toggleAddTaskBtn" class="btn primary">+ Add task</button>
+            </article>
+          </div>
+
+          <div id="taskFormCard" class="card hidden">
+            <div class="row between align-start">
+              <h2>Add task</h2>
+              <button id="closeTaskFormBtn" class="btn small">Close</button>
+            </div>
+            <form id="taskForm" class="task-form">
+              <input id="title" class="input" required maxlength="120" placeholder="Task title" />
+              <input id="notes" class="input" maxlength="200" placeholder="Notes (optional)" />
+
+              <div class="grid-2">
+                <label>Project<select id="projectSelect" class="input"></select></label>
+                <label>New project (optional)<input id="projectInput" class="input" maxlength="50" placeholder="ex: School" /></label>
+              </div>
+
+              <div class="grid-2">
+                <label>Date<input id="date" class="input" type="date" required /></label>
+                <label>Repeat
+                  <select id="repeat" class="input">
+                    <option value="none">No repeat</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="custom">Custom weekdays</option>
+                  </select>
+                </label>
+              </div>
+
+              <label>Priority
+                <select id="priority" class="input">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+
+              <label id="customDaysWrap" class="hidden">Custom weekdays
+                <select id="customDays" class="input" multiple size="7"></select>
+              </label>
+              <p id="customDaysSummary" class="muted hidden"></p>
+
+              <div id="timeRow" class="grid-2">
+                <label>Start time<input id="startTime" class="input" type="time" required /></label>
+                <label>End time<input id="endTime" class="input" type="time" required /></label>
+              </div>
+              <label class="inline-label mt8"><input id="allDay" type="checkbox" /> All day task</label>
+
+              <label class="mt8">Task color presets</label>
+              <div id="taskColorPresets" class="preset-row"></div>
+              <input id="taskCustomColorInput" class="input color hidden" type="color" value="#3b82f6" />
+
+              <button class="btn primary big" type="submit">Save task</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="row between align-start">
+              <h2>Schedule</h2>
+              <input id="taskSearch" class="input schedule-search" placeholder="Search tasks or project..." />
+            </div>
+            <div class="row wrap gap8 mt8">
+              <select id="taskFilter" class="input compact-input">
+                <option value="all">Show: All</option>
+                <option value="pending">Show: Pending</option>
+                <option value="done">Show: Done</option>
+              </select>
+              <select id="taskSort" class="input compact-input">
+                <option value="time">Sort: Time</option>
+                <option value="title">Sort: Title</option>
+                <option value="project">Sort: Project</option>
+                <option value="priority">Sort: Priority</option>
+              </select>
+              <button id="markAllDoneBtn" class="btn small" type="button">Mark all done today</button>
+              <button id="clearDoneTodayBtn" class="btn small" type="button">Clear done today</button>
+            </div>
+            <div id="taskList" class="task-list"></div>
+          </div>
+        </section>
+
+        <section id="calendar" class="tab-panel">
+          <div class="card">
+            <div class="row between">
+              <h2>Task calendar</h2>
+              <div class="row gap8">
+                <button id="prevMonth" class="btn">←</button>
+                <p id="monthLabel" class="month-label"></p>
+                <button id="nextMonth" class="btn">→</button>
+              </div>
+            </div>
+            <div class="row wrap gap8 mt8">
+              <select id="calendarProjectFilter" class="input compact-input">
+                <option value="all">Calendar: All projects</option>
+              </select>
+              <label class="inline-label"><input id="calendarOnlyPending" type="checkbox" /> Show only pending</label>
+            </div>
+            <p id="calendarNow" class="muted mt8 calendar-now"></p>
+            <p class="muted mt8">Tap a day to see done/pending tasks. Color dots = unfinished tasks.</p>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </div>
+          <div class="card">
+            <h3 id="calendarDayTitle">Selected day</h3>
+            <div id="calendarDayTasks" class="task-list"></div>
+          </div>
+        </section>
+
+        <section id="settings" class="tab-panel">
+          <div class="card">
+            <h2>Appearance</h2>
+            <div class="settings-grid">
+              <label>Theme
+                <select id="theme" class="input">
+                  <option value="light">White</option>
+                  <option value="dark">Black</option>
+                  <option value="light-gray">Light gray</option>
+                  <option value="dark-gray">Dark gray</option>
+                </select>
+              </label>
+              <label>Text size
+                <select id="fontSize" class="input">
+                  <option value="12">Tiny</option>
+                  <option value="14">Small</option>
+                  <option value="16">Medium</option>
+                  <option value="18">Large</option>
+                  <option value="20">XL</option>
+                  <option value="22">XXL</option>
+                </select>
+              </label>
+
+              <label>Tab position
+                <select id="navPosition" class="input">
+                  <option value="down">Bottom</option>
+                  <option value="up">Top</option>
+                  <option value="left">Left</option>
+                  <option value="right">Right</option>
+                </select>
+              </label>
+
+              <label>Background style
+                <select id="bgEffect" class="input">
+                  <option value="solid">Solid</option>
+                  <option value="sunset">Sunset fade</option>
+                  <option value="ocean">Ocean fade</option>
+                  <option value="aurora">Aurora fade</option>
+                </select>
+              </label>
+
+              <label>Calendar week starts on
+                <select id="weekStart" class="input">
+                  <option value="sun">Sunday</option>
+                  <option value="mon">Monday</option>
+                </select>
+              </label>
+
+              <label class="inline-label"><input id="allowPastCalendarEdit" type="checkbox" /> Allow editing past tasks in Calendar</label>
+            </div>
+            <div class="row between wrap mt8">
+              <label class="inline-label"><input id="fullscreenForever" type="checkbox" /> Always fullscreen (stay fullscreen)</label>
+              <button id="fullscreenToggleBtn" class="btn small" type="button">Enter fullscreen</button>
+            </div>
+            <div class="row gap8 wrap mt8">
+              <button id="enableAutoFullscreenBtn" class="btn" type="button">Enable auto fullscreen on startup</button>
+            </div>
+
+            <div class="row between wrap mt8">
+              <label class="inline-label">Navigation button size</label>
+              <button id="toggleNavSizeBtn" class="btn small" type="button">Make buttons smaller</button>
+            </div>
+
+            <label class="mt8">Main color presets</label>
+            <div id="mainColorPresets" class="preset-row"></div>
+            <input id="mainCustomColorInput" class="input color hidden" type="color" value="#2563eb" />
+
+            <label class="mt8">Calendar low color presets</label>
+            <div id="lowColorPresets" class="preset-row"></div>
+            <input id="lowCustomColorInput" class="input color hidden" type="color" value="#ef4444" />
+
+            <label class="mt8">Calendar high color presets</label>
+            <div id="highColorPresets" class="preset-row"></div>
+            <input id="highCustomColorInput" class="input color hidden" type="color" value="#22c55e" />
+
+            <div class="row end mt12"><button id="saveSettings" class="btn primary">Save settings</button></div>
+          </div>
+
+          <div class="card">
+            <h2>Phone sync (GitHub)</h2>
+            <p class="muted">Use one GitHub Gist to sync laptop + phone instantly.</p>
+            <label>GitHub Token (gist permission)<input id="syncToken" class="input" type="password" placeholder="ghp_..." /></label>
+            <label>Gist ID<input id="syncGistId" class="input" placeholder="paste gist id" /></label>
+            <label class="inline-label mt8"><input id="syncAuto" type="checkbox" /> Auto sync on changes</label>
+            <div class="row gap8 mt8 wrap">
+              <button id="syncPushBtn" class="btn">Push now</button>
+              <button id="syncPullBtn" class="btn">Pull now</button>
+              <button id="syncTestBtn" class="btn">Test</button>
+            </div>
+            <p id="syncStatus" class="muted mt8"></p>
+          </div>
+
+          <div class="card">
+            <h2>Data</h2>
+            <p class="muted">Saved automatically in your browser.</p>
+            <div class="row wrap gap8 mt8">
+              <button id="exportBtn" class="btn">Export</button>
+              <label class="btn">Import <input id="importFile" type="file" accept="application/json" hidden /></label>
+              <button id="clearBtn" class="btn danger">Clear all</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Projects</h2>
+            <p class="muted">Edit or delete your projects. Deleting moves tasks to General.</p>
+            <div id="projectManagerList" class="project-manager mt8"></div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" role="tablist" aria-label="Primary">
+        <button class="tab active" data-tab="tasks" role="tab">Today</button>
+        <button class="tab" data-tab="calendar" role="tab">Calendar</button>
+        <button class="tab" data-tab="settings" role="tab">Settings</button>
+      </nav>
+    </div>
+
+    <template id="taskTemplate">
+      <article class="task-item">
+        <div class="time-col">
+          <span class="task-time"></span>
+          <span class="task-repeat muted"></span>
+        </div>
+        <div class="task-main">
+          <div class="row between align-start">
+            <div class="row align-start">
+              <span class="dot"></span>
+              <div>
+                <h4 class="task-title"></h4>
+                <p class="muted task-meta"></p>
+              </div>
+            </div>
+            <button class="btn small completeBtn">Done</button>
+          </div>
+          <div class="row between mt12 wrap">
+            <div class="row gap8 wrap">
+              <span class="project-badge"></span>
+              <span class="priority-badge"></span>
+            </div>
+            <div class="row gap8">
+              <button class="btn small pinBtn">Pin</button>
+              <button class="btn small editBtn">Edit</button>
+              <button class="btn small duplicateBtn">Duplicate</button>
+              <button class="btn small deleteBtn">Delete</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
