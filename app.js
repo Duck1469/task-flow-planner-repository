@@ -34,6 +34,8 @@ const state = {
       showPriority: true,
       showCustomRepeat: true,
       showAllDayToggle: true,
+      showPinning: true,
+      showDuplicateButton: true,
       showSyncCard: true,
       showDataCard: true,
       showProjectsCard: true,
@@ -104,6 +106,8 @@ function applyData(data) {
     showPriority: true,
     showCustomRepeat: true,
     showAllDayToggle: true,
+    showPinning: true,
+    showDuplicateButton: true,
     showSyncCard: true,
     showDataCard: true,
     showProjectsCard: true,
@@ -343,12 +347,14 @@ function renderTasks() {
   el("remainingSummary").textContent = `${Math.max(items.length - doneCount, 0)} left`;
   el("todayProgress").style.width = `${items.length ? Math.round((doneCount / items.length) * 100) : 0}%`;
   list.innerHTML = "";
+  list.classList.toggle("agenda-has-items", !!items.length);
   if (!items.length) {
     list.innerHTML = `<p class="muted">No tasks for today. Add one with + Add task.</p>`;
     return;
   }
 
   const tpl = el("taskTemplate");
+  const ft = state.settings.featureToggles || {};
   items.forEach((task) => {
     const node = tpl.content.cloneNode(true);
     const completed = isCompleted(task, date);
@@ -364,10 +370,12 @@ function renderTasks() {
     const prEl = node.querySelector(".priority-badge");
     prEl.textContent = `Priority: ${pr}`;
     prEl.classList.add(pr);
+    prEl.classList.toggle("hidden", !ft.showPriority);
     if (completed) node.querySelector(".task-item").classList.add("completed");
     if (task.pinned) node.querySelector(".task-item").classList.add("pinned");
 
     node.querySelector(".pinBtn").textContent = task.pinned ? "Unpin" : "Pin";
+    node.querySelector(".pinBtn").classList.toggle("hidden", !ft.showPinning);
     node.querySelector(".pinBtn").onclick = async () => {
       task.pinned = !task.pinned;
       save();
@@ -414,6 +422,7 @@ function renderTasks() {
       renderCalendar();
       if (state.settings.sync.auto) await pushSync();
     };
+    node.querySelector(".duplicateBtn").classList.toggle("hidden", !ft.showDuplicateButton);
 
     const doneBtn = node.querySelector(".completeBtn");
     doneBtn.textContent = completed ? "Undo" : "Done";
@@ -602,7 +611,16 @@ function applySettings() {
   el("priorityWrap")?.classList.toggle("hidden", !ft.showPriority);
   el("customDaysWrap")?.classList.toggle("hidden", !ft.showCustomRepeat || (el("repeat")?.value !== "custom"));
   el("customDaysSummary")?.classList.toggle("hidden", !ft.showCustomRepeat || (el("repeat")?.value !== "custom"));
+  const customOpt = document.querySelector('#repeat option[value="custom"]');
+  if (customOpt) customOpt.disabled = !ft.showCustomRepeat;
+  if (!ft.showCustomRepeat && el("repeat")?.value === "custom") el("repeat").value = "none";
   el("allDayWrap")?.classList.toggle("hidden", !ft.showAllDayToggle);
+  const prioSortOpt = document.querySelector('#taskSort option[value="priority"]');
+  if (prioSortOpt) prioSortOpt.disabled = !ft.showPriority;
+  if (!ft.showPriority && el("taskSort")?.value === "priority") el("taskSort").value = "time";
+  document.querySelectorAll(".pinBtn").forEach((btn) => btn.classList.toggle("hidden", !ft.showPinning));
+  document.querySelectorAll(".duplicateBtn").forEach((btn) => btn.classList.toggle("hidden", !ft.showDuplicateButton));
+  document.querySelectorAll(".priority-badge").forEach((badge) => badge.classList.toggle("hidden", !ft.showPriority));
   el("syncCard")?.classList.toggle("hidden", !ft.showSyncCard);
   el("dataCard")?.classList.toggle("hidden", !ft.showDataCard);
   el("projectsCard")?.classList.toggle("hidden", !ft.showProjectsCard);
@@ -732,6 +750,8 @@ function setupHandlers() {
   el("togglePriority").checked = !!state.settings.featureToggles.showPriority;
   el("toggleCustomRepeat").checked = !!state.settings.featureToggles.showCustomRepeat;
   el("toggleAllDay").checked = !!state.settings.featureToggles.showAllDayToggle;
+  el("togglePinning").checked = !!state.settings.featureToggles.showPinning;
+  el("toggleDuplicate").checked = !!state.settings.featureToggles.showDuplicateButton;
   el("toggleSyncCard").checked = !!state.settings.featureToggles.showSyncCard;
   el("toggleDataCard").checked = !!state.settings.featureToggles.showDataCard;
   el("toggleProjectsCard").checked = !!state.settings.featureToggles.showProjectsCard;
@@ -754,6 +774,8 @@ function setupHandlers() {
     "togglePriority",
     "toggleCustomRepeat",
     "toggleAllDay",
+    "togglePinning",
+    "toggleDuplicate",
     "toggleSyncCard",
     "toggleDataCard",
     "toggleProjectsCard",
@@ -768,6 +790,8 @@ function setupHandlers() {
         showPriority: el("togglePriority").checked,
         showCustomRepeat: el("toggleCustomRepeat").checked,
         showAllDayToggle: el("toggleAllDay").checked,
+        showPinning: el("togglePinning").checked,
+        showDuplicateButton: el("toggleDuplicate").checked,
         showSyncCard: el("toggleSyncCard").checked,
         showDataCard: el("toggleDataCard").checked,
         showProjectsCard: el("toggleProjectsCard").checked,
@@ -859,14 +883,6 @@ function setupHandlers() {
   };
   el("fullscreenToggleBtn").onclick = toggleFullscreen;
   updateFullscreenToggleLabel();
-
-  el("enableAutoFullscreenBtn").onclick = async () => {
-    state.settings.fullscreenForever = true;
-    el("fullscreenForever").checked = true;
-    save();
-    ensureFullscreenIfEnabled();
-    alert("Auto fullscreen enabled. It will try fullscreen each time you open the website.");
-  };
 
   el("toggleNavSizeBtn").onclick = () => {
     state.settings.navSize = state.settings.navSize === "small" ? "big" : "small";
@@ -974,6 +990,8 @@ function setupHandlers() {
       showPriority: el("togglePriority").checked,
       showCustomRepeat: el("toggleCustomRepeat").checked,
       showAllDayToggle: el("toggleAllDay").checked,
+      showPinning: el("togglePinning").checked,
+      showDuplicateButton: el("toggleDuplicate").checked,
       showSyncCard: el("toggleSyncCard").checked,
       showDataCard: el("toggleDataCard").checked,
       showProjectsCard: el("toggleProjectsCard").checked,
@@ -1041,6 +1059,8 @@ function setupHandlers() {
         showPriority: true,
         showCustomRepeat: true,
         showAllDayToggle: true,
+        showPinning: true,
+        showDuplicateButton: true,
         showSyncCard: true,
         showDataCard: true,
         showProjectsCard: true,

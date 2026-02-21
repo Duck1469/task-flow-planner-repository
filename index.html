@@ -6,7 +6,7 @@
     <title>TaskFlow Planner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@400;600;700&family=Poppins:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Nunito:wght@400;600;700&family=Poppins:wght@400;600;700&family=Space+Grotesk:wght@400;600;700&family=Orbitron:wght@400;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -167,6 +167,8 @@
                   <option value="Poppins, system-ui, sans-serif">Poppins (Rounded)</option>
                   <option value="Nunito, system-ui, sans-serif">Nunito (Friendly)</option>
                   <option value="'Space Grotesk', system-ui, sans-serif">Space Grotesk (Modern)</option>
+                  <option value="Orbitron, system-ui, sans-serif">Orbitron (Futuristic)</option>
+                  <option value="'Playfair Display', serif">Playfair Display (Elegant)</option>
                   <option value="Georgia, serif">Georgia (Classic)</option>
                   <option value="'Courier New', monospace">Courier New (Code)</option>
                 </select>
@@ -211,10 +213,6 @@
               <label class="inline-label"><input id="fullscreenForever" type="checkbox" /> Always fullscreen (stay fullscreen)</label>
               <button id="fullscreenToggleBtn" class="btn small" type="button">Enter fullscreen</button>
             </div>
-            <div class="row gap8 wrap mt8">
-              <button id="enableAutoFullscreenBtn" class="btn" type="button">Enable auto fullscreen on startup</button>
-            </div>
-
             <div class="row between wrap mt8">
               <label class="inline-label">Navigation button size</label>
               <button id="toggleNavSizeBtn" class="btn small" type="button">Make buttons smaller</button>
@@ -246,6 +244,8 @@
               <label class="inline-label"><input id="togglePriority" type="checkbox" /> Show priority selector</label>
               <label class="inline-label"><input id="toggleCustomRepeat" type="checkbox" /> Show custom-repeat weekdays picker</label>
               <label class="inline-label"><input id="toggleAllDay" type="checkbox" /> Show all-day task toggle</label>
+              <label class="inline-label"><input id="togglePinning" type="checkbox" /> Show pinning controls</label>
+              <label class="inline-label"><input id="toggleDuplicate" type="checkbox" /> Show duplicate button</label>
               <label class="inline-label"><input id="toggleSyncCard" type="checkbox" /> Show phone sync section</label>
               <label class="inline-label"><input id="toggleDataCard" type="checkbox" /> Show data tools section</label>
               <label class="inline-label"><input id="toggleProjectsCard" type="checkbox" /> Show projects section</label>

@@ -93,8 +93,8 @@ select.input, select.input option { background: var(--card); color: var(--text);
 .priority-badge.low { background:#22c55e22; border-color:#22c55e55; color:#16a34a; }
 .task-item.completed .task-title,.task-item.completed .task-meta { text-decoration:line-through; opacity:.75; }
 
-body.schedule-agenda .task-list { position: relative; }
-body.schedule-agenda .task-list::before { content:""; position:absolute; left:47px; top:4px; bottom:4px; width:2px; background:color-mix(in srgb, var(--primary) 35%, transparent); }
+body.schedule-agenda #taskList { position: relative; }
+body.schedule-agenda #taskList.agenda-has-items::before { content:""; position:absolute; left:47px; top:4px; bottom:4px; width:2px; background:color-mix(in srgb, var(--primary) 35%, transparent); }
 body.schedule-agenda .task-item { border-radius:16px; }
 
 body.schedule-cards .task-item { grid-template-columns:1fr; }
