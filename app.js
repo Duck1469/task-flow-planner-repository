@@ -15,6 +15,7 @@ const state = {
   settings: {
     theme: "light",
     fontSize: 16,
+    fontFamily: "Inter, system-ui, sans-serif",
     mainColor: "#2563eb",
     lowColor: "#ef4444",
     highColor: "#22c55e",
@@ -81,6 +82,7 @@ function applyData(data) {
     state.settings.fullscreenForever = !!state.settings.fullscreenDefault;
   }
   if (!state.settings.bgEffect) state.settings.bgEffect = "solid";
+  if (!state.settings.fontFamily) state.settings.fontFamily = "Inter, system-ui, sans-serif";
   if (!state.settings.weekStart) state.settings.weekStart = "sun";
   if (!state.settings.scheduleStyle) state.settings.scheduleStyle = "agenda";
   if (!state.settings.calendarProject) state.settings.calendarProject = "all";
@@ -572,6 +574,7 @@ function applySettings() {
   document.body.classList.add(`effect-${state.settings.bgEffect || "solid"}`);
   document.body.classList.add(`schedule-${state.settings.scheduleStyle || "agenda"}`);
   document.body.style.fontSize = `${state.settings.fontSize}px`;
+  document.documentElement.style.setProperty("--font-family", state.settings.fontFamily || "Inter, system-ui, sans-serif");
   document.documentElement.style.setProperty("--primary", state.settings.mainColor);
   document.body.classList.remove("nav-down", "nav-up", "nav-left", "nav-right");
   document.body.classList.add(`nav-${state.settings.navPosition || "left"}`);
@@ -687,6 +690,7 @@ function setupHandlers() {
   el("weekStart").value = state.settings.weekStart || "sun";
   el("scheduleStyle").value = state.settings.scheduleStyle || "agenda";
   el("fontSize").value = String(state.settings.fontSize);
+  el("fontFamily").value = state.settings.fontFamily || "Inter, system-ui, sans-serif";
   el("navPosition").value = state.settings.navPosition || "left";
   el("fullscreenForever").checked = state.settings.fullscreenForever;
   el("taskCustomColorInput").value = state.taskColor;
@@ -890,6 +894,7 @@ function setupHandlers() {
     state.settings.weekStart = el("weekStart").value;
     state.settings.scheduleStyle = el("scheduleStyle").value;
     state.settings.fontSize = Number(el("fontSize").value);
+    state.settings.fontFamily = el("fontFamily").value;
     state.settings.navPosition = el("navPosition").value;
     state.settings.fullscreenForever = el("fullscreenForever").checked;
     state.settings.sync.token = el("syncToken").value.trim();
@@ -948,6 +953,7 @@ function setupHandlers() {
     state.settings = {
       theme: "light",
       fontSize: 16,
+      fontFamily: "Inter, system-ui, sans-serif",
       mainColor: "#2563eb",
       lowColor: "#ef4444",
       highColor: "#22c55e",
