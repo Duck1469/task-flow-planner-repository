@@ -18,7 +18,7 @@
 
       <main class="content-wrap">
         <section id="tasks" class="tab-panel active">
-          <div class="stats-grid">
+          <div id="todayStats" class="stats-grid">
             <article class="stat-card">
               <p class="muted">Completed today</p>
               <h3 id="todaySummary">0 / 0</h3>
@@ -90,7 +90,7 @@
               <h2>Schedule</h2>
               <input id="taskSearch" class="input schedule-search" placeholder="Search tasks or project..." />
             </div>
-            <div class="row wrap gap8 mt8">
+            <div id="scheduleToolbar" class="row wrap gap8 mt8">
               <select id="taskFilter" class="input compact-input">
                 <option value="all">Show: All</option>
                 <option value="pending">Show: Pending</option>
@@ -119,7 +119,7 @@
                 <button id="nextMonth" class="btn">→</button>
               </div>
             </div>
-            <div class="row wrap gap8 mt8">
+            <div id="calendarFilters" class="row wrap gap8 mt8">
               <select id="calendarProjectFilter" class="input compact-input">
                 <option value="all">Calendar: All projects</option>
               </select>
@@ -129,7 +129,7 @@
             <p class="muted mt8">Tap a day to see done/pending tasks. Color dots = unfinished tasks.</p>
             <div id="calendarGrid" class="calendar-grid"></div>
           </div>
-          <div class="card">
+          <div id="calendarDayCard" class="card">
             <h3 id="calendarDayTitle">Selected day</h3>
             <div id="calendarDayTasks" class="task-list"></div>
           </div>
@@ -219,6 +219,16 @@
             <input id="highCustomColorInput" class="input color hidden" type="color" value="#22c55e" />
 
             <div class="row end mt12"><button id="saveSettings" class="btn primary">Save settings</button></div>
+          </div>
+
+          <div class="card">
+            <h2>Feature toggles</h2>
+            <div class="settings-grid feature-grid">
+              <label class="inline-label"><input id="toggleStats" type="checkbox" /> Show Today stats</label>
+              <label class="inline-label"><input id="toggleScheduleToolbar" type="checkbox" /> Show Schedule toolbar</label>
+              <label class="inline-label"><input id="toggleCalendarFilters" type="checkbox" /> Show Calendar filters</label>
+              <label class="inline-label"><input id="toggleCalendarDayPanel" type="checkbox" /> Show Calendar day details</label>
+            </div>
           </div>
 
           <div class="card">

@@ -24,6 +24,12 @@ const state = {
     calendarProject: "all",
     calendarPendingOnly: false,
     allowPastCalendarEdit: true,
+    featureToggles: {
+      showStats: true,
+      showScheduleToolbar: true,
+      showCalendarFilters: true,
+      showCalendarDayPanel: true,
+    },
     fullscreenForever: false,
     sync: { token: "", gistId: "", auto: false },
     navPosition: "left",
@@ -80,6 +86,13 @@ function applyData(data) {
   if (!state.settings.calendarProject) state.settings.calendarProject = "all";
   if (state.settings.calendarPendingOnly === undefined) state.settings.calendarPendingOnly = false;
   if (state.settings.allowPastCalendarEdit === undefined) state.settings.allowPastCalendarEdit = true;
+  state.settings.featureToggles = {
+    showStats: true,
+    showScheduleToolbar: true,
+    showCalendarFilters: true,
+    showCalendarDayPanel: true,
+    ...(data.settings?.featureToggles || {}),
+  };
   if (!state.settings.navPosition) state.settings.navPosition = "left";
   if (!state.settings.navSize) state.settings.navSize = "big";
   state.taskColor = state.settings.mainColor || state.taskColor;
@@ -563,6 +576,11 @@ function applySettings() {
   document.body.classList.remove("nav-down", "nav-up", "nav-left", "nav-right");
   document.body.classList.add(`nav-${state.settings.navPosition || "left"}`);
   document.body.classList.toggle("nav-compact", state.settings.navSize === "small");
+  const ft = state.settings.featureToggles || {};
+  el("todayStats")?.classList.toggle("hidden", !ft.showStats);
+  el("scheduleToolbar")?.classList.toggle("hidden", !ft.showScheduleToolbar);
+  el("calendarFilters")?.classList.toggle("hidden", !ft.showCalendarFilters);
+  el("calendarDayCard")?.classList.toggle("hidden", !ft.showCalendarDayPanel);
 }
 
 function updateFullscreenToggleLabel() {
@@ -680,6 +698,10 @@ function setupHandlers() {
   el("syncAuto").checked = !!state.settings.sync.auto;
   el("calendarOnlyPending").checked = !!state.settings.calendarPendingOnly;
   el("allowPastCalendarEdit").checked = !!state.settings.allowPastCalendarEdit;
+  el("toggleStats").checked = !!state.settings.featureToggles.showStats;
+  el("toggleScheduleToolbar").checked = !!state.settings.featureToggles.showScheduleToolbar;
+  el("toggleCalendarFilters").checked = !!state.settings.featureToggles.showCalendarFilters;
+  el("toggleCalendarDayPanel").checked = !!state.settings.featureToggles.showCalendarDayPanel;
   el("taskFilter").value = state.taskFilter;
   el("taskSort").value = state.taskSort;
   el("toggleNavSizeBtn").textContent = state.settings.navSize === "small" ? "Make buttons bigger" : "Make buttons smaller";
@@ -876,6 +898,12 @@ function setupHandlers() {
     state.settings.calendarProject = el("calendarProjectFilter").value;
     state.settings.calendarPendingOnly = el("calendarOnlyPending").checked;
     state.settings.allowPastCalendarEdit = el("allowPastCalendarEdit").checked;
+    state.settings.featureToggles = {
+      showStats: el("toggleStats").checked,
+      showScheduleToolbar: el("toggleScheduleToolbar").checked,
+      showCalendarFilters: el("toggleCalendarFilters").checked,
+      showCalendarDayPanel: el("toggleCalendarDayPanel").checked,
+    };
     save();
     applySettings();
     renderCalendar();
@@ -929,6 +957,12 @@ function setupHandlers() {
       calendarProject: "all",
       calendarPendingOnly: false,
       allowPastCalendarEdit: true,
+      featureToggles: {
+        showStats: true,
+        showScheduleToolbar: true,
+        showCalendarFilters: true,
+        showCalendarDayPanel: true,
+      },
       fullscreenForever: false,
       sync: { token: "", gistId: "", auto: false },
       navPosition: "left",
