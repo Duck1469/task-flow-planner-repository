@@ -20,6 +20,7 @@ const state = {
     highColor: "#22c55e",
     bgEffect: "solid",
     weekStart: "sun",
+    scheduleStyle: "agenda",
     calendarProject: "all",
     calendarPendingOnly: false,
     allowPastCalendarEdit: true,
@@ -75,6 +76,7 @@ function applyData(data) {
   }
   if (!state.settings.bgEffect) state.settings.bgEffect = "solid";
   if (!state.settings.weekStart) state.settings.weekStart = "sun";
+  if (!state.settings.scheduleStyle) state.settings.scheduleStyle = "agenda";
   if (!state.settings.calendarProject) state.settings.calendarProject = "all";
   if (state.settings.calendarPendingOnly === undefined) state.settings.calendarPendingOnly = false;
   if (state.settings.allowPastCalendarEdit === undefined) state.settings.allowPastCalendarEdit = true;
@@ -552,8 +554,10 @@ function renderCalendar() {
 function applySettings() {
   document.body.classList.remove("light", "dark", "light-gray", "dark-gray");
   document.body.classList.remove("effect-solid", "effect-sunset", "effect-ocean", "effect-aurora");
+  document.body.classList.remove("schedule-agenda", "schedule-cards", "schedule-compact");
   document.body.classList.add(state.settings.theme);
   document.body.classList.add(`effect-${state.settings.bgEffect || "solid"}`);
+  document.body.classList.add(`schedule-${state.settings.scheduleStyle || "agenda"}`);
   document.body.style.fontSize = `${state.settings.fontSize}px`;
   document.documentElement.style.setProperty("--primary", state.settings.mainColor);
   document.body.classList.remove("nav-down", "nav-up", "nav-left", "nav-right");
@@ -663,6 +667,7 @@ function setupHandlers() {
   el("theme").value = state.settings.theme;
   el("bgEffect").value = state.settings.bgEffect || "solid";
   el("weekStart").value = state.settings.weekStart || "sun";
+  el("scheduleStyle").value = state.settings.scheduleStyle || "agenda";
   el("fontSize").value = String(state.settings.fontSize);
   el("navPosition").value = state.settings.navPosition || "left";
   el("fullscreenForever").checked = state.settings.fullscreenForever;
@@ -861,6 +866,7 @@ function setupHandlers() {
     state.settings.theme = el("theme").value;
     state.settings.bgEffect = el("bgEffect").value;
     state.settings.weekStart = el("weekStart").value;
+    state.settings.scheduleStyle = el("scheduleStyle").value;
     state.settings.fontSize = Number(el("fontSize").value);
     state.settings.navPosition = el("navPosition").value;
     state.settings.fullscreenForever = el("fullscreenForever").checked;
@@ -919,6 +925,7 @@ function setupHandlers() {
       highColor: "#22c55e",
       bgEffect: "solid",
       weekStart: "sun",
+      scheduleStyle: "agenda",
       calendarProject: "all",
       calendarPendingOnly: false,
       allowPastCalendarEdit: true,
